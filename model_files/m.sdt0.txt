@@ -1,0 +1,57 @@
+### Condition 1
+(1 - pnorm((cr3+cr2+cr11)))*Ho                                     #Hit | high0
+(pnorm((cr3+cr2+cr11)) - pnorm((cr2+cr11)) )*Ho                    #Hit | Low0 
+(1 - pnorm((cr3+cr2+cr11)))*(1-Ho)                                 #Hit | high1
+(pnorm((cr3+cr2+cr11)) - pnorm((cr2+cr11)))*(1-Ho)                 #Hit | Low1 
+pnorm((cr11))*Hn                                                   #Miss| High0
+(pnorm((cr11+cr2)) - pnorm((cr11)))*Hn                             #Miss| Low0
+pnorm((cr11))*(1-Hn)                                               #Miss| High1
+(pnorm((cr11+cr2)) - pnorm((cr11)))*(1-Hn)                         #Miss| Low1
+
+(1 - pnorm(cr3+cr2+cr11))*Ho                                       #FA  | High0
+(pnorm(cr3+cr2+cr11) - pnorm(cr2+cr11))*Ho                         #FA  | Low0
+(1 - pnorm(cr3+cr2+cr11)  )*(1-Ho)                                 #FA  | High1
+(pnorm(cr3+cr2+cr11) - pnorm(cr2+cr11))*(1-Ho)                     #FA  | Low1
+pnorm(cr11)*Hn                                                     #RC  | High0
+(pnorm(cr2+cr11) - pnorm(cr11))*Hn                                 #RC  | Low0
+pnorm(cr11)*(1-Hn)                                                 #RC  | High1
+(pnorm(cr2+cr11) - pnorm(cr11))*(1-Hn)                             #RC  | Low1
+
+### Condition 2
+(1 - pnorm((cr3+cr2+cr12)))*Ho                                     #Hit | high0
+(pnorm((cr3+cr2+cr12)) - pnorm((cr2+cr12)) )*Ho                    #Hit | Low0 
+(1 - pnorm((cr3+cr2+cr12)))*(1-Ho)                                 #Hit | high1
+(pnorm((cr3+cr2+cr12)) - pnorm((cr2+cr12)))*(1-Ho)                 #Hit | Low1 
+pnorm((cr12))*Hn                                                   #Miss| High0
+(pnorm((cr12+cr2)) - pnorm((cr12)))*Hn                             #Miss| Low0
+pnorm((cr12))*(1-Hn)                                               #Miss| High1
+(pnorm((cr12+cr2)) - pnorm((cr12)))*(1-Hn)                         #Miss| Low1
+
+(1 - pnorm(cr3+cr2+cr12))*Ho                                       #FA  | High0
+(pnorm(cr3+cr2+cr12) - pnorm(cr2+cr12))*Ho                         #FA  | Low0
+(1 - pnorm(cr3+cr2+cr12)  )*(1-Ho)                                 #FA  | High1
+(pnorm(cr3+cr2+cr12) - pnorm(cr2+cr12))*(1-Ho)                     #FA  | Low1
+pnorm(cr12)*Hn                                                     #RC  | High0
+(pnorm(cr2+cr12) - pnorm(cr12))*Hn                                 #RC  | Low0
+pnorm(cr12)*(1-Hn)                                                 #RC  | High1
+(pnorm(cr2+cr12) - pnorm(cr12))*(1-Hn)                             #RC  | Low1
+
+### Condition 3
+(1 - pnorm((cr3+cr2+cr13)))*Ho                                     #Hit | high0
+(pnorm((cr3+cr2+cr13)) - pnorm((cr2+cr13)) )*Ho                    #Hit | Low0 
+(1 - pnorm((cr3+cr2+cr13)))*(1-Ho)                                 #Hit | high1
+(pnorm((cr3+cr2+cr13)) - pnorm((cr2+cr13)))*(1-Ho)                 #Hit | Low1 
+pnorm((cr13))*Hn                                                   #Miss| High0
+(pnorm((cr13+cr2)) - pnorm((cr13)))*Hn                             #Miss| Low0
+pnorm((cr13))*(1-Hn)                                               #Miss| High1
+(pnorm((cr13+cr2)) - pnorm((cr13)))*(1-Hn)                         #Miss| Low1
+
+(1 - pnorm(cr3+cr2+cr13))*Ho                                       #FA  | High0
+(pnorm(cr3+cr2+cr13) - pnorm(cr2+cr13))*Ho                         #FA  | Low0
+(1 - pnorm(cr3+cr2+cr13)  )*(1-Ho)                                 #FA  | High1
+(pnorm(cr3+cr2+cr13) - pnorm(cr2+cr13))*(1-Ho)                     #FA  | Low1
+pnorm(cr13)*Hn                                                     #RC  | High0
+(pnorm(cr2+cr13) - pnorm(cr13))*Hn                                 #RC  | Low0
+pnorm(cr13)*(1-Hn)                                                 #RC  | High1
+(pnorm(cr2+cr13) - pnorm(cr13))*(1-Hn)                             #RC  | Low1
+

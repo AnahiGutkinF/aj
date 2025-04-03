@@ -1,0 +1,65 @@
+### Condition 1
+
+# Target:
+g1*Lo*Ho                           # Hit | high0
+g1*(1-Lo)*Ho                       # Hit | low0
+g1*Lo*(1-Ho)                       # Hit | high1
+g1*(1-Lo)*(1-Ho)                   # Hit | low1
+(1-g1)*Ln*Hn                       # Miss| high0
+(1-g1)*(1-Ln)*Hn                   # Miss| low0
+(1-g1)*Ln*(1-Hn)                   # Miss| high1
+(1-g1)*(1-Ln)*(1-Hn)               # Miss| low1
+
+# Lures:
+g1*Lo*Ho                           # FA  | high0
+g1*(1-Lo)*Ho                       # FA  | low0
+g1*Lo*(1-Ho)                       # FA  | high1
+g1*(1-Lo)*(1-Ho)                   # FA  | low1
+(1-g1)*Ln*Hn                       # CR  | high0
+(1-g1)*(1-Ln)*Hn                   # CR  | low0
+(1-g1)*Ln*(1-Hn)                   # CR  | high1
+(1-g1)*(1-Ln)*(1-Hn)               # CR  | low1
+
+### Condition 2
+
+# Target:
+g2*Lo*Ho                           # Hit | high0
+g2*(1-Lo)*Ho                       # Hit | low0
+g2*Lo*(1-Ho)                       # Hit | high1
+g2*(1-Lo)*(1-Ho)                   # Hit | low1
+(1-g2)*Ln*Hn                       # Miss| high0
+(1-g2)*(1-Ln)*Hn                   # Miss| low0
+(1-g2)*Ln*(1-Hn)                   # Miss| high1
+(1-g2)*(1-Ln)*(1-Hn)               # Miss| low1
+
+# Lures:
+g2*Lo*Ho                           # FA  | high0
+g2*(1-Lo)*Ho                       # FA  | low0
+g2*Lo*(1-Ho)                       # FA  | high1
+g2*(1-Lo)*(1-Ho)                   # FA  | low1
+(1-g2)*Ln*Hn                       # CR  | high0
+(1-g2)*(1-Ln)*Hn                   # CR  | low0
+(1-g2)*Ln*(1-Hn)                   # CR  | high1
+(1-g2)*(1-Ln)*(1-Hn)               # CR  | low1
+
+### Condition 3
+
+# Target:
+g3*Lo*Ho                           # Hit | high0
+g3*(1-Lo)*Ho                       # Hit | low0
+g3*Lo*(1-Ho)                       # Hit | high1
+g3*(1-Lo)*(1-Ho)                   # Hit | low1
+(1-g3)*Ln*Hn                       # Miss| high0
+(1-g3)*(1-Ln)*Hn                   # Miss| low0
+(1-g3)*Ln*(1-Hn)                   # Miss| high1
+(1-g3)*(1-Ln)*(1-Hn)               # Miss| low1
+
+# Lures:
+g3*Lo*Ho                           # FA  | high0
+g3*(1-Lo)*Ho                       # FA  | low0
+g3*Lo*(1-Ho)                       # FA  | high1
+g3*(1-Lo)*(1-Ho)                   # FA  | low1
+(1-g3)*Ln*Hn                       # CR  | high0
+(1-g3)*(1-Ln)*Hn                   # CR  | low0
+(1-g3)*Ln*(1-Hn)                   # CR  | high1
+(1-g3)*(1-Ln)*(1-Hn)               # CR  | low1

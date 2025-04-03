@@ -1,0 +1,109 @@
+### Condition 1
+
+# Target:
+do*Ldo*Hdof                  + (1-do)*(g5*s_g4*s_g3*s_g2*s_g1)*(Ldo*s_Lgo)*(Hdof*s_Hgof)                           # Hit | Ligh0
+do*(1-Ldo)*Hdos              + (1-do)*(g5*s_g4*s_g3*s_g2*s_g1)*(1-(Ldo*s_Lgo))*(Hdos*s_Hgos)                       # Hit | low0
+do*Ldo*(1-Hdof)              + (1-do)*(g5*s_g4*s_g3*s_g2*s_g1)*(Ldo*s_Lgo)*(1-(Hdof*s_Hgof))                       # Hit | high1
+do*(1-Ldo)*(1-Hdos)          + (1-do)*(g5*s_g4*s_g3*s_g2*s_g1)*(1-(Ldo*s_Lgo))*(1-(Hdos*s_Hgos))                   # Hit | low1
+(1-do)*(1-(g5*s_g4*s_g3*s_g2*s_g1))*(Ldn*s_Lgn)*(Hdnf*s_Hgnf)                                       	              # Miss| high0
+(1-do)*(1-(g5*s_g4*s_g3*s_g2*s_g1))*(1-(Ldn*s_Lgn))*(Hdns*s_Hgns)                                            	      # Miss| low0
+(1-do)*(1-(g5*s_g4*s_g3*s_g2*s_g1))*(Ldn*s_Lgn)*(1-(Hdnf*s_Hgnf))                                            	      # Miss| high1
+(1-do)*(1-(g5*s_g4*s_g3*s_g2*s_g1))*(1-(Ldn*s_Lgn))*(1-(Hdns*s_Hgns))                                               # Miss| low1
+
+# Lures:
+(1-dn)*(g5*s_g4*s_g3*s_g2*s_g1)*(Ldo*s_Lgo)*(Hdof*s_Hgof)                                                           # FA  | high0
+(1-dn)*(g5*s_g4*s_g3*s_g2*s_g1)*(1-(Ldo*s_Lgo))*(Hdos*s_Hgos)                                                       # FA  | low0
+(1-dn)*(g5*s_g4*s_g3*s_g2*s_g1)*(Ldo*s_Lgo)*(1-(Hdof*s_Hgof))                                                       # FA  | high1
+(1-dn)*(g5*s_g4*s_g3*s_g2*s_g1)*(1-(Ldo*s_Lgo))*(1-(Hdos*s_Hgos))                                                   # FA  | low1
+dn*Ldn*Hdnf                  + (1-dn)*(1-(g5*s_g4*s_g3*s_g2*s_g1))*(Ldn*s_Lgn)*(Hdnf*s_Hgnf)                       # CR  | high0
+dn*(1-Ldn)*Hdns              + (1-dn)*(1-(g5*s_g4*s_g3*s_g2*s_g1))*(1-(Ldn*s_Lgn))*(Hdns*s_Hgns)                   # CR  | low0
+dn*Ldn*(1-Hdnf)              + (1-dn)*(1-(g5*s_g4*s_g3*s_g2*s_g1))*(Ldn*s_Lgn)*(1-(Hdnf*s_Hgnf))                   # CR  | high1
+dn*(1-Ldn)*(1-Hdns)          + (1-dn)*(1-(g5*s_g4*s_g3*s_g2*s_g1))*(1-(Ldn*s_Lgn))*(1-(Hdns*s_Hgns))               # CR  | low1
+
+### Condition 2
+
+# Target:
+do*Ldo*Hdof                  + (1-do)*g5*s_g4*s_g3*s_g2*(Ldo*s_Lgo)*(Hdof*s_Hgof)                           # Hit | high0
+do*(1-Ldo)*Hdos              + (1-do)*g5*s_g4*s_g3*s_g2*(1-(Ldo*s_Lgo))*(Hdos*s_Hgos)                       # Hit | low0
+do*Ldo*(1-Hdof)              + (1-do)*g5*s_g4*s_g3*s_g2*(Ldo*s_Lgo)*(1-(Hdof*s_Hgof))                       # Hit | high1
+do*(1-Ldo)*(1-Hdos)          + (1-do)*g5*s_g4*s_g3*s_g2*(1-(Ldo*s_Lgo))*(1-(Hdos*s_Hgos))                   # Hit | low1
+(1-do)*(1-(g5*s_g4*s_g3*s_g2))*(Ldn*s_Lgn)*(Hdnf*s_Hgnf)                                       	              # Miss| high0
+(1-do)*(1-(g5*s_g4*s_g3*s_g2))*(1-(Ldn*s_Lgn))*(Hdns*s_Hgns)                                            	      # Miss| low0
+(1-do)*(1-(g5*s_g4*s_g3*s_g2))*(Ldn*s_Lgn)*(1-(Hdnf*s_Hgnf))                                            	      # Miss| high1
+(1-do)*(1-(g5*s_g4*s_g3*s_g2))*(1-(Ldn*s_Lgn))*(1-(Hdns*s_Hgns))                                               # Miss| low1
+
+# Lures:
+(1-dn)*(g5*s_g4*s_g3*s_g2)*(Ldo*s_Lgo)*(Hdof*s_Hgof)                                                           # FA  | high0
+(1-dn)*(g5*s_g4*s_g3*s_g2)*(1-(Ldo*s_Lgo))*(Hdos*s_Hgos)                                                       # FA  | low0
+(1-dn)*(g5*s_g4*s_g3*s_g2)*(Ldo*s_Lgo)*(1-(Hdof*s_Hgof))                                                       # FA  | high1
+(1-dn)*(g5*s_g4*s_g3*s_g2)*(1-(Ldo*s_Lgo))*(1-(Hdos*s_Hgos))                                                   # FA  | low1
+dn*Ldn*Hdnf                  + (1-dn)*(1-(g5*s_g4*s_g3*s_g2))*(Ldn*s_Lgn)*(Hdnf*s_Hgnf)                       # CR  | high0
+dn*(1-Ldn)*Hdns              + (1-dn)*(1-(g5*s_g4*s_g3*s_g2))*(1-(Ldn*s_Lgn))*(Hdns*s_Hgns)                   # CR  | low0
+dn*Ldn*(1-Hdnf)              + (1-dn)*(1-(g5*s_g4*s_g3*s_g2))*(Ldn*s_Lgn)*(1-(Hdnf*s_Hgnf))                   # CR  | high1
+dn*(1-Ldn)*(1-Hdns)          + (1-dn)*(1-(g5*s_g4*s_g3*s_g2))*(1-(Ldn*s_Lgn))*(1-(Hdns*s_Hgns))               # CR  | low1
+
+### Condition 3
+
+# Target:
+do*Ldo*Hdof                  + (1-do)*g5*s_g4*s_g3*(Ldo*s_Lgo)*(Hdof*s_Hgof)                           # Hit | high0
+do*(1-Ldo)*Hdos              + (1-do)*g5*s_g4*s_g3*(1-(Ldo*s_Lgo))*(Hdos*s_Hgos)                       # Hit | low0
+do*Ldo*(1-Hdof)              + (1-do)*g5*s_g4*s_g3*(Ldo*s_Lgo)*(1-(Hdof*s_Hgof))                       # Hit | high1
+do*(1-Ldo)*(1-Hdos)          + (1-do)*g5*s_g4*s_g3*(1-(Ldo*s_Lgo))*(1-(Hdos*s_Hgos))                   # Hit | low1
+(1-do)*(1-g5*s_g4*s_g3)*(Ldn*s_Lgn)*(Hdnf*s_Hgnf)                                       	              # Miss| high0
+(1-do)*(1-g5*s_g4*s_g3)*(1-(Ldn*s_Lgn))*(Hdns*s_Hgns)                                            	      # Miss| low0
+(1-do)*(1-g5*s_g4*s_g3)*(Ldn*s_Lgn)*(1-(Hdnf*s_Hgnf))                                            	      # Miss| high1
+(1-do)*(1-g5*s_g4*s_g3)*(1-(Ldn*s_Lgn))*(1-(Hdns*s_Hgns))                                               # Miss| low1
+
+# Lures:
+(1-dn)*g5*s_g4*s_g3*(Ldo*s_Lgo)*(Hdof*s_Hgof)                                                           # FA  | high0
+(1-dn)*g5*s_g4*s_g3*(1-(Ldo*s_Lgo))*(Hdos*s_Hgos)                                                       # FA  | low0
+(1-dn)*g5*s_g4*s_g3*(Ldo*s_Lgo)*(1-(Hdof*s_Hgof))                                                       # FA  | high1
+(1-dn)*g5*s_g4*s_g3*(1-(Ldo*s_Lgo))*(1-(Hdos*s_Hgos))                                                   # FA  | low1
+dn*Ldn*Hdnf                  + (1-dn)*(1-g5*s_g4*s_g3)*(Ldn*s_Lgn)*(Hdnf*s_Hgnf)                       # CR  | high0
+dn*(1-Ldn)*Hdns              + (1-dn)*(1-g5*s_g4*s_g3)*(1-(Ldn*s_Lgn))*(Hdns*s_Hgns)                   # CR  | low0
+dn*Ldn*(1-Hdnf)              + (1-dn)*(1-g5*s_g4*s_g3)*(Ldn*s_Lgn)*(1-(Hdnf*s_Hgnf))                   # CR  | high1
+dn*(1-Ldn)*(1-Hdns)          + (1-dn)*(1-g5*s_g4*s_g3)*(1-(Ldn*s_Lgn))*(1-(Hdns*s_Hgns))               # CR  | low1
+
+### Condition 4
+
+# Target:
+do*Ldo*Hdof                  + (1-do)*(g5*s_g4)*(Ldo*s_Lgo)*(Hdof*s_Hgof)                           # Hit | high0
+do*(1-Ldo)*Hdos              + (1-do)*(g5*s_g4)*(1-(Ldo*s_Lgo))*(Hdos*s_Hgos)                       # Hit | low0
+do*Ldo*(1-Hdof)              + (1-do)*(g5*s_g4)*(Ldo*s_Lgo)*(1-(Hdof*s_Hgof))                       # Hit | high1
+do*(1-Ldo)*(1-Hdos)          + (1-do)*(g5*s_g4)*(1-(Ldo*s_Lgo))*(1-(Hdos*s_Hgos))                   # Hit | low1
+(1-do)*(1-(g5*s_g4))*(Ldn*s_Lgn)*(Hdnf*s_Hgnf)                                       	              # Miss| high0
+(1-do)*(1-(g5*s_g4))*(1-(Ldn*s_Lgn))*(Hdns*s_Hgns)                                            	      # Miss| low0
+(1-do)*(1-(g5*s_g4))*(Ldn*s_Lgn)*(1-(Hdnf*s_Hgnf))                                            	      # Miss| high1
+(1-do)*(1-(g5*s_g4))*(1-(Ldn*s_Lgn))*(1-(Hdns*s_Hgns))                                               # Miss| low1
+
+# Lures:
+(1-dn)*(g5*s_g4)*(Ldo*s_Lgo)*(Hdof*s_Hgof)                                                           # FA  | high0
+(1-dn)*(g5*s_g4)*(1-(Ldo*s_Lgo))*(Hdos*s_Hgos)                                                       # FA  | low0
+(1-dn)*(g5*s_g4)*(Ldo*s_Lgo)*(1-(Hdof*s_Hgof))                                                       # FA  | high1
+(1-dn)*(g5*s_g4)*(1-(Ldo*s_Lgo))*(1-(Hdos*s_Hgos))                                                   # FA  | low1
+dn*Ldn*Hdnf                  + (1-dn)*(1-(g5*s_g4))*(Ldn*s_Lgn)*(Hdnf*s_Hgnf)                       # CR  | high0
+dn*(1-Ldn)*Hdns              + (1-dn)*(1-(g5*s_g4))*(1-(Ldn*s_Lgn))*(Hdns*s_Hgns)                   # CR  | low0
+dn*Ldn*(1-Hdnf)              + (1-dn)*(1-(g5*s_g4))*(Ldn*s_Lgn)*(1-(Hdnf*s_Hgnf))                   # CR  | high1
+dn*(1-Ldn)*(1-Hdns)          + (1-dn)*(1-(g5*s_g4))*(1-(Ldn*s_Lgn))*(1-(Hdns*s_Hgns))               # CR  | low1
+
+### Condition 5
+
+# Target:
+do*Ldo*Hdof                  + (1-do)*g5*(Ldo*s_Lgo)*(Hdof*s_Hgof)                           # Hit | high0
+do*(1-Ldo)*Hdos              + (1-do)*g5*(1-(Ldo*s_Lgo))*(Hdos*s_Hgos)                       # Hit | low0
+do*Ldo*(1-Hdof)              + (1-do)*g5*(Ldo*s_Lgo)*(1-(Hdof*s_Hgof))                       # Hit | high1
+do*(1-Ldo)*(1-Hdos)          + (1-do)*g5*(1-(Ldo*s_Lgo))*(1-(Hdos*s_Hgos))                   # Hit | low1
+(1-do)*(1-g5)*(Ldn*s_Lgn)*(Hdnf*s_Hgnf)                                       	              # Miss| high0
+(1-do)*(1-g5)*(1-(Ldn*s_Lgn))*(Hdns*s_Hgns)                                            	      # Miss| low0
+(1-do)*(1-g5)*(Ldn*s_Lgn)*(1-(Hdnf*s_Hgnf))                                            	      # Miss| high1
+(1-do)*(1-g5)*(1-(Ldn*s_Lgn))*(1-(Hdns*s_Hgns))                                               # Miss| low1
+
+# Lures:
+(1-dn)*g5*(Ldo*s_Lgo)*(Hdof*s_Hgof)                                                           # FA  | high0
+(1-dn)*g5*(1-(Ldo*s_Lgo))*(Hdos*s_Hgos)                                                       # FA  | low0
+(1-dn)*g5*(Ldo*s_Lgo)*(1-(Hdof*s_Hgof))                                                       # FA  | high1
+(1-dn)*g5*(1-(Ldo*s_Lgo))*(1-(Hdos*s_Hgos))                                                   # FA  | low1
+dn*Ldn*Hdnf                  + (1-dn)*(1-g5)*(Ldn*s_Lgn)*(Hdnf*s_Hgnf)                       # CR  | high0
+dn*(1-Ldn)*Hdns              + (1-dn)*(1-g5)*(1-(Ldn*s_Lgn))*(Hdns*s_Hgns)                   # CR  | low0
+dn*Ldn*(1-Hdnf)              + (1-dn)*(1-g5)*(Ldn*s_Lgn)*(1-(Hdnf*s_Hgnf))                   # CR  | high1
+dn*(1-Ldn)*(1-Hdns)          + (1-dn)*(1-g5)*(1-(Ldn*s_Lgn))*(1-(Hdns*s_Hgns))               # CR  | low1

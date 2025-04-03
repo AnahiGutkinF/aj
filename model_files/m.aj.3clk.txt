@@ -1,0 +1,56 @@
+# CONDITION 1 																			#	Cat	CL	RT 
+((1-pnorm((cl1+c-d)/ss))*Lf*Hsf*s_Hff)     + ((pnorm((cl1+c-d)/ss) - pnorm((cl1-d)/ss)) *r*((Lf*s_Ls))*Hsf)     + ((pnorm((cl1+c-d)/ss) - pnorm((cl1-d)/ss)) *(1-r) *g*((Lf*s_Ls*s_Lgo))*(Hsf*s_Hgf))				#	Hit	Fast	High
+((1-pnorm((cl1+c-d)/ss))*Lf*(1-(Hsf*s_Hff))) + ((pnorm((cl1+c-d)/ss) - pnorm((cl1-d)/ss)) *r*((Lf*s_Ls))*(1-Hsf)) + ((pnorm((cl1+c-d)/ss) - pnorm((cl1-d)/ss)) *(1-r) *g*((Lf*s_Ls*s_Lgo))*(1- (Hsf*s_Hgf)))		#	Hit	Fast	Low
+((1-pnorm((cl1+c-d)/ss))*(1-Lf)*(Hss*s_Hfs)) + ((pnorm((cl1+c-d)/ss) - pnorm((cl1-d)/ss)) *r*(1-(Lf*s_Ls))*Hss)   + ((pnorm((cl1+c-d)/ss) - pnorm((cl1-d)/ss)) *(1-r) *g*(1-(Lf*s_Ls*s_Lgo))*(Hss*s_Hgs))			#	Hit	Slow	High
+((1-pnorm((cl1+c-d)/ss))*(1-Lf) *(1-(Hss*s_Hfs))) + ((pnorm((cl1+c-d)/ss) - pnorm((cl1-d)/ss)) *r*(1-(Lf*s_Ls))*(1- Hss)) + ((pnorm((cl1+c-d)/ss) - pnorm((cl1-d)/ss)) *(1-r) *g*(1-(Lf*s_Ls*s_Lgo))*(1- (Hss*s_Hgs)))	#	Hit	Slow	Low
+((pnorm((cl1+c-d)/ss) - pnorm((cl1-d)/ss)) *(1-r) *(1-g) *((Lf*s_Ls*s_Lgn))*(Hsf*s_Hgf)) + (pnorm((cl1-d)/ss)*Lf*(Hsf*s_Hff))										#	Miss	Fast	High
+((pnorm((cl1+c-d)/ss) - pnorm((cl1-d)/ss)) *(1-r) *(1-g) *((Lf*s_Ls*s_Lgn))*(1- (Hsf*s_Hgf))) + pnorm((cl1-d)/ss)*Lf*(1- (Hsf*s_Hff))									#	Miss	Fast	Low
+((pnorm((cl1+c-d)/ss) - pnorm((cl1-d)/ss)) *(1-r) *(1-g) *(1-(Lf*s_Ls*s_Lgn))*(Hss*s_Hgs)) + pnorm((cl1-d)/ss)*(1-Lf)*(Hss*s_Hfs)										#	Miss	Slow	High
+((pnorm((cl1+c-d)/ss) - pnorm((cl1-d)/ss)) *(1-r) *(1-g) *(1-(Lf*s_Ls*s_Lgn))*(1- (Hss*s_Hgs))) + (pnorm((cl1-d)/ss)*(1-Lf)*(1- (Hss*s_Hfs)))								#	Miss	Slow	Low
+
+((pnorm(cl1+c) - pnorm(cl1))*g*(Lf*s_Ls*s_Lgo)*(Hsf*s_Hgf)) + ((1-pnorm(cl1+c))*Lf*(Hsf*s_Hff))												#	FA	Fast	High
+((pnorm(cl1+c) - pnorm(cl1))*g*(Lf*s_Ls*s_Lgo)*(1-(Hsf*s_Hgf))) + ((1-pnorm(cl1+c))*Lf*(1-(Hsf*s_Hff)))											#	FA	Fast	Low
+((pnorm(cl1+c) - pnorm(cl1))*g*(1-(Lf*s_Ls*s_Lgo))*(Hss*s_Hgs)) + ((1-pnorm(cl1+c))*(1-Lf)*(Hss*s_Hfs))											#	FA	Slow	High
+((pnorm(cl1+c) - pnorm(cl1))*g*(1-(Lf*s_Ls*s_Lgo))*(1- (Hss*s_Hgs))) + ((1-pnorm(cl1+c))*(1-Lf)*(1- (Hss*s_Hfs)))										#	FA	Slow	Low
+(pnorm(cl1)*Lf*(Hsf*s_Hff)) + ((pnorm(cl1+c) - pnorm(cl1))*(1-g)*(Lf*s_Ls*s_Lgn)*(Hsf*s_Hgf))												#	CR	Fast	High
+(pnorm(cl1)*Lf*(1-(Hsf*s_Hff))) + ((pnorm(cl1+c) - pnorm(cl1))*(1-g)*(Lf*s_Ls*s_Lgn)*(1- (Hsf*s_Hgf)))											#	CR	Fast	Low
+(pnorm(cl1)*(1-Lf)*(Hss*s_Hfs)) + ((pnorm(cl1+c) - pnorm(cl1))*(1-g)*(1-(Lf*s_Ls*s_Lgn))*(Hss*s_Hgs))											#	CR	Slow	High
+(pnorm(cl1)*(1-Lf)*(1- (Hss*s_Hfs))) + ((pnorm(cl1+c) - pnorm(cl1))*(1-g)*(1-(Lf*s_Ls*s_Lgn))*(1- (Hss*s_Hgs)))										#	CR	Slow	Low
+
+# CONDITION 2 																			
+((1-pnorm((cl1+sc2+c-d)/ss))*Lf*(Hsf*s_Hff)) + ((pnorm((cl1-sc2+c-d)/ss) - pnorm((cl1-sc2-d)/ss)) *r*((Lf*s_Ls))*Hsf) + ((pnorm((cl1-sc2+c-d)/ss) - pnorm((cl1-sc2-d)/ss)) *(1-r) *g*((Lf*s_Ls*s_Lgo))*(Hsf*s_Hgf))				#	Hit	Fast	High
+((1-pnorm((cl1-sc2+c-d)/ss))*Lf*(1-(Hsf*s_Hff))) + ((pnorm((cl1-sc2+c-d)/ss) - pnorm((cl1-sc2-d)/ss)) *r*((Lf*s_Ls))*(1-Hsf)) + ((pnorm((cl1-sc2+c-d)/ss) - pnorm((cl1-sc2-d)/ss)) *(1-r) *g*((Lf*s_Ls*s_Lgo))*(1- (Hsf*s_Hgf)))		#	Hit	Fast	Low
+((1-pnorm((cl1-sc2+c-d)/ss))*(1-Lf)*(Hss*s_Hfs)) + ((pnorm((cl1-sc2+c-d)/ss) - pnorm((cl1-sc2-d)/ss)) *r*(1-(Lf*s_Ls))*Hss) + ((pnorm((cl1-sc2+c-d)/ss) - pnorm((cl1-sc2-d)/ss)) *(1-r) *g*(1-(Lf*s_Ls*s_Lgo))*(Hss*s_Hgs))			#	Hit	Slow	High
+((1-pnorm((cl1-sc2+c-d)/ss))*(1-Lf) *(1-(Hss*s_Hfs))) + ((pnorm((cl1-sc2+c-d)/ss) - pnorm((cl1-sc2-d)/ss)) *r*(1-(Lf*s_Ls))*(1- Hss)) + ((pnorm((cl1-sc2+c-d)/ss) - pnorm((cl1-sc2-d)/ss)) *(1-r) *g*(1-(Lf*s_Ls*s_Lgo))*(1- (Hss*s_Hgs)))	#	Hit	Slow	Low
+((pnorm((cl1-sc2+c-d)/ss) - pnorm((cl1-sc2-d)/ss)) *(1-r) *(1-g) *((Lf*s_Ls*s_Lgn))*(Hsf*s_Hgf)) + (pnorm((cl1-sc2-d)/ss)*Lf*(Hsf*s_Hff))										#	Miss	Fast	High
+((pnorm((cl1-sc2+c-d)/ss) - pnorm((cl1-sc2-d)/ss)) *(1-r) *(1-g) *((Lf*s_Ls*s_Lgn))*(1- (Hsf*s_Hgf))) + pnorm((cl1-sc2-d)/ss)*Lf*(1- (Hsf*s_Hff))									#	Miss	Fast	Low
+((pnorm((cl1-sc2+c-d)/ss) - pnorm((cl1-sc2-d)/ss)) *(1-r) *(1-g) *(1-(Lf*s_Ls*s_Lgn))*(Hss*s_Hgs)) + pnorm((cl1-sc2-d)/ss)*(1-Lf)*(Hss*s_Hfs)										#	Miss	Slow	High
+((pnorm((cl1-sc2+c-d)/ss) - pnorm((cl1-sc2-d)/ss)) *(1-r) *(1-g) *(1-(Lf*s_Ls*s_Lgn))*(1- (Hss*s_Hgs))) + (pnorm((cl1-sc2-d)/ss)*(1-Lf)*(1- (Hss*s_Hfs)))								#	Miss	Slow	Low
+
+((pnorm(cl1-sc2+c) - pnorm(cl1-sc2))*g*(Lf*s_Ls*s_Lgo)*(Hsf*s_Hgf)) + ((1-pnorm(cl1-sc2+c))*Lf*(Hsf*s_Hff))												#	FA	Fast	High
+((pnorm(cl1-sc2+c) - pnorm(cl1-sc2))*g*(Lf*s_Ls*s_Lgo)*(1-(Hsf*s_Hgf))) + ((1-pnorm(cl1-sc2+c))*Lf*(1-(Hsf*s_Hff)))											#	FA	Fast	Low
+((pnorm(cl1-sc2+c) - pnorm(cl1-sc2))*g*(1-(Lf*s_Ls*s_Lgo))*(Hss*s_Hgs)) + ((1-pnorm(cl1-sc2+c))*(1-Lf)*(Hss*s_Hfs))											#	FA	Slow	High
+((pnorm(cl1-sc2+c) - pnorm(cl1-sc2))*g*(1-(Lf*s_Ls*s_Lgo))*(1- (Hss*s_Hgs))) + ((1-pnorm(cl1-sc2+c))*(1-Lf)*(1- (Hss*s_Hfs)))										#	FA	Slow	Low
+(pnorm(cl1-sc2)*Lf*(Hsf*s_Hff)) + ((pnorm(cl1-sc2+c) - pnorm(cl1-sc2))*(1-g)*(Lf*s_Ls*s_Lgn)*(Hsf*s_Hgf))												#	CR	Fast	High
+(pnorm(cl1-sc2)*Lf*(1-(Hsf*s_Hff))) + ((pnorm(cl1-sc2+c) - pnorm(cl1-sc2))*(1-g)*(Lf*s_Ls*s_Lgn)*(1- (Hsf*s_Hgf)))											#	CR	Fast	Low
+(pnorm(cl1-sc2)*(1-Lf)*(Hss*s_Hfs)) + ((pnorm(cl1-sc2+c) - pnorm(cl1-sc2))*(1-g)*(1-(Lf*s_Ls*s_Lgn))*(Hss*s_Hgs))											#	CR	Slow	High
+(pnorm(cl1-sc2)*(1-Lf)*(1- (Hss*s_Hfs))) + ((pnorm(cl1-sc2+c) - pnorm(cl1-sc2))*(1-g)*(1-(Lf*s_Ls*s_Lgn))*(1- (Hss*s_Hgs)))										#	CR	Slow	Low
+
+# CONDITION 3 																			
+((1-pnorm((cl1+sc2+sc3+c-d)/ss))*Lf*(Hsf*s_Hff)) + ((pnorm((cl1+sc2+sc3+c-d)/ss) - pnorm((cl1+sc2+sc3-d)/ss)) *r*((Lf*s_Ls))*Hsf) + ((pnorm((cl1+sc2+sc3+c-d)/ss) - pnorm((cl1+sc2+sc3-d)/ss)) *(1-r) *g*((Lf*s_Ls*s_Lgo))*(Hsf*s_Hgf))				#	Hit	Fast	High
+((1-pnorm((cl1+sc2+sc3+c-d)/ss))*Lf*(1-(Hsf*s_Hff))) + ((pnorm((cl1+sc2+sc3+c-d)/ss) - pnorm((cl1+sc2+sc3-d)/ss)) *r*((Lf*s_Ls))*(1-Hsf)) + ((pnorm((cl1+sc2+sc3+c-d)/ss) - pnorm((cl1+sc2+sc3-d)/ss)) *(1-r) *g*((Lf*s_Ls*s_Lgo))*(1- (Hsf*s_Hgf)))		#	Hit	Fast	Low
+((1-pnorm((cl1+sc2+sc3+c-d)/ss))*(1-Lf)*(Hss*s_Hfs)) + ((pnorm((cl1+sc2+sc3+c-d)/ss) - pnorm((cl1+sc2+sc3-d)/ss)) *r*(1-(Lf*s_Ls))*Hss) + ((pnorm((cl1+sc2+sc3+c-d)/ss) - pnorm((cl1+sc2+sc3-d)/ss)) *(1-r) *g*(1-(Lf*s_Ls*s_Lgo))*(Hss*s_Hgs))			#	Hit	Slow	High
+((1-pnorm((cl1+sc2+sc3+c-d)/ss))*(1-Lf) *(1-(Hss*s_Hfs))) + ((pnorm((cl1+sc2+sc3+c-d)/ss) - pnorm((cl1+sc2+sc3-d)/ss)) *r*(1-(Lf*s_Ls))*(1- Hss)) + ((pnorm((cl1+sc2+sc3+c-d)/ss) - pnorm((cl1+sc2+sc3-d)/ss)) *(1-r) *g*(1-(Lf*s_Ls*s_Lgo))*(1- (Hss*s_Hgs)))	#	Hit	Slow	Low
+((pnorm((cl1+sc2+sc3+c-d)/ss) - pnorm((cl1+sc2+sc3-d)/ss)) *(1-r) *(1-g) *((Lf*s_Ls*s_Lgn))*(Hsf*s_Hgf)) + (pnorm((cl1+sc2+sc3-d)/ss)*Lf*(Hsf*s_Hff))										#	Miss	Fast	High
+((pnorm((cl1+sc2+sc3+c-d)/ss) - pnorm((cl1+sc2+sc3-d)/ss)) *(1-r) *(1-g) *((Lf*s_Ls*s_Lgn))*(1- (Hsf*s_Hgf))) + pnorm((cl1+sc2+sc3-d)/ss)*Lf*(1- (Hsf*s_Hff))									#	Miss	Fast	Low
+((pnorm((cl1+sc2+sc3+c-d)/ss) - pnorm((cl1+sc2+sc3-d)/ss)) *(1-r) *(1-g) *(1-(Lf*s_Ls*s_Lgn))*(Hss*s_Hgs)) + pnorm((cl1+sc2+sc3-d)/ss)*(1-Lf)*(Hss*s_Hfs)										#	Miss	Slow	High
+((pnorm((cl1+sc2+sc3+c-d)/ss) - pnorm((cl1+sc2+sc3-d)/ss)) *(1-r) *(1-g) *(1-(Lf*s_Ls*s_Lgn))*(1- (Hss*s_Hgs))) + (pnorm((cl1+sc2+sc3-d)/ss)*(1-Lf)*(1- (Hss*s_Hfs)))								#	Miss	Slow	Low
+
+((pnorm(cl1+sc2+sc3+c) - pnorm(cl1+sc2+sc3))*g*(Lf*s_Ls*s_Lgo)*(Hsf*s_Hgf)) + ((1-pnorm(cl1+sc2+sc3+c))*Lf*(Hsf*s_Hff))												#	FA	Fast	High
+((pnorm(cl1+sc2+sc3+c) - pnorm(cl1+sc2+sc3))*g*(Lf*s_Ls*s_Lgo)*(1-(Hsf*s_Hgf))) + ((1-pnorm(cl1+sc2+sc3+c))*Lf*(1-(Hsf*s_Hff)))											#	FA	Fast	Low
+((pnorm(cl1+sc2+sc3+c) - pnorm(cl1+sc2+sc3))*g*(1-(Lf*s_Ls*s_Lgo))*(Hss*s_Hgs)) + ((1-pnorm(cl1+sc2+sc3+c))*(1-Lf)*(Hss*s_Hfs))											#	FA	Slow	High
+((pnorm(cl1+sc2+sc3+c) - pnorm(cl1+sc2+sc3))*g*(1-(Lf*s_Ls*s_Lgo))*(1- (Hss*s_Hgs))) + ((1-pnorm(cl1+sc2+sc3+c))*(1-Lf)*(1- (Hss*s_Hfs)))										#	FA	Slow	Low			
+(pnorm(cl1+sc2+sc3)*Lf*(Hsf*s_Hff)) + ((pnorm(cl1+sc2+sc3+c) - pnorm(cl1+sc2+sc3))*(1-g)*(Lf*s_Ls*s_Lgn)*(Hsf*s_Hgf))												#	CR	Fast	High
+(pnorm(cl1+sc2+sc3)*Lf*(1-(Hsf*s_Hff))) + ((pnorm(cl1+sc2+sc3+c) - pnorm(cl1+sc2+sc3))*(1-g)*(Lf*s_Ls*s_Lgn)*(1- (Hsf*s_Hgf)))											#	CR	Fast	Low
+(pnorm(cl1+sc2+sc3)*(1-Lf)*(Hss*s_Hfs)) + ((pnorm(cl1+sc2+sc3+c) - pnorm(cl1+sc2+sc3))*(1-g)*(1-(Lf*s_Ls*s_Lgn))*(Hss*s_Hgs))											#	CR	Slow	High
+(pnorm(cl1+sc2+sc3)*(1-Lf)*(1- (Hss*s_Hfs))) + ((pnorm(cl1+sc2+sc3+c) - pnorm(cl1+sc2+sc3))*(1-g)*(1-(Lf*s_Ls*s_Lgn))*(1- (Hss*s_Hgs)))										#	CR	Slow	Low

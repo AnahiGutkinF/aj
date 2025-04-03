@@ -1,0 +1,56 @@
+### Condition 1
+(1 - pnorm((cr3+cr2+cr11-d)/ss))*Lh                                          #Hit | high0
+(pnorm((cr3+cr2+cr11-d)/ss) - pnorm((cr2+cr11-d)/ss) )*Lh                    #Hit | low0 
+(1 - pnorm((cr3+cr2+cr11-d)/ss))*(1-Lh)                                          #Hit | high1
+(pnorm((cr3+cr2+cr11-d)/ss) - pnorm((cr2+cr11-d)/ss))*(1-Lh)                     #Hit | low1 
+pnorm((cr11-d)/ss)*(Lh*s_Lm)                                                      #Miss| High0
+(pnorm((cr11+cr2-d)/ss) - pnorm((cr11-d)/ss))*(Lh*s_Lm)                             #Miss| low0
+pnorm((cr11-d)/ss)*(1-(Lh*s_Lm))                                                      #Miss| High1
+(pnorm((cr11+cr2-d)/ss) - pnorm((cr11-d)/ss))*(1-(Lh*s_Lm))                       #Miss| low1
+
+(1 - pnorm(cr3+cr2+cr11))*(Lr*s_Lf)                                                 #FA  | High0
+(pnorm(cr3+cr2+cr11) - pnorm(cr2+cr11))*(Lr*s_Lf)                                   #FA  | Low0
+(1 - pnorm(cr3+cr2+cr11)  )*(1-(Lr*s_Lf))                                               #FA  | High1
+(pnorm(cr3+cr2+cr11) - pnorm(cr2+cr11))*(1-(Lr*s_Lf))                                   #FA  | Low1
+pnorm(cr11)*Lr                                                             #RC  | High0
+(pnorm(cr2+cr11) - pnorm(cr11))*Lr                                           #RC  | low0
+pnorm(cr11)*(1-Lr)                                                             #RC  | High1
+(pnorm(cr2+cr11) - pnorm(cr11))*(1-Lr)                                           #RC  | low1
+
+### Condition 2
+(1 - pnorm((cr3+cr2+cr11+s_cr12-d)/ss))*Lh                                          #Hit | high0
+(pnorm((cr3+cr2+cr11+s_cr12-d)/ss) - pnorm((cr2+cr11+s_cr12-d)/ss) )*Lh                    #Hit | low0 
+(1 - pnorm((cr3+cr2+cr11+s_cr12-d)/ss))*(1-Lh)                                          #Hit | high1
+(pnorm((cr3+cr2+cr11+s_cr12-d)/ss) - pnorm((cr2+cr11+s_cr12-d)/ss))*(1-Lh)                     #Hit | low1 
+pnorm((cr11+s_cr12-d)/ss)*(Lh*s_Lm)                                                      #Miss| High0
+(pnorm((cr11+s_cr12+cr2-d)/ss) - pnorm((cr11+s_cr12-d)/ss))*(Lh*s_Lm)                             #Miss| low0
+pnorm((cr11+s_cr12-d)/ss)*(1-(Lh*s_Lm))                                                      #Miss| High1
+(pnorm((cr11+s_cr12+cr2-d)/ss) - pnorm((cr11+s_cr12-d)/ss))*(1-(Lh*s_Lm))                       #Miss| low1
+
+(1 - pnorm(cr3+cr2+cr11+s_cr12))*(Lr*s_Lf)                                                 #FA  | High0
+(pnorm(cr3+cr2+cr11+s_cr12) - pnorm(cr2+cr11+s_cr12))*(Lr*s_Lf)                                   #FA  | Low0
+(1 - pnorm(cr3+cr2+cr11+s_cr12)  )*(1-(Lr*s_Lf))                                               #FA  | High1
+(pnorm(cr3+cr2+cr11+s_cr12) - pnorm(cr2+cr11+s_cr12))*(1-(Lr*s_Lf))                                   #FA  | Low1
+pnorm(cr11+s_cr12)*Lr                                                             #RC  | High0
+(pnorm(cr2+cr11+s_cr12) - pnorm(cr11+s_cr12))*Lr                                           #RC  | low0
+pnorm(cr11+s_cr12)*(1-Lr)                                                             #RC  | High1
+(pnorm(cr2+cr11+s_cr12) - pnorm(cr11+s_cr12))*(1-Lr)                                           #RC  | low1
+
+### Condition 3
+(1 - pnorm((cr3+cr2+cr11+s_cr12+s_cr13-d)/ss))*Lh                                          #Hit | high0
+(pnorm((cr3+cr2+cr11+s_cr12+s_cr13-d)/ss) - pnorm((cr2+cr11+s_cr12+s_cr13-d)/ss) )*Lh                    #Hit | low0 
+(1 - pnorm((cr3+cr2+cr11+s_cr12+s_cr13-d)/ss))*(1-Lh)                                          #Hit | high1
+(pnorm((cr3+cr2+cr11+s_cr12+s_cr13-d)/ss) - pnorm((cr2+cr11+s_cr12+s_cr13-d)/ss))*(1-Lh)                     #Hit | low1 
+pnorm((cr11+s_cr12+s_cr13-d)/ss)*(Lh*s_Lm)                                                      #Miss| High0
+(pnorm((cr11+s_cr12+s_cr13+cr2-d)/ss) - pnorm((cr11+s_cr12+s_cr13-d)/ss))*(Lh*s_Lm)                             #Miss| low0
+pnorm((cr11+s_cr12+s_cr13-d)/ss)*(1-(Lh*s_Lm))                                                      #Miss| High1
+(pnorm((cr11+s_cr12+s_cr13+cr2-d)/ss) - pnorm((cr11+s_cr12+s_cr13-d)/ss))*(1-(Lh*s_Lm))                       #Miss| low1
+
+(1 - pnorm(cr3+cr2+cr11+s_cr12+s_cr13))*(Lr*s_Lf)                                                 #FA  | High0
+(pnorm(cr3+cr2+cr11+s_cr12+s_cr13) - pnorm(cr2+cr11+s_cr12+s_cr13))*(Lr*s_Lf)                                   #FA  | Low0
+(1 - pnorm(cr3+cr2+cr11+s_cr12+s_cr13)  )*(1-(Lr*s_Lf))                                               #FA  | High1
+(pnorm(cr3+cr2+cr11+s_cr12+s_cr13) - pnorm(cr2+cr11+s_cr12+s_cr13))*(1-(Lr*s_Lf))                                   #FA  | Low1
+pnorm(cr11+s_cr12+s_cr13)*Lr                                                             #RC  | High0
+(pnorm(cr2+cr11+s_cr12+s_cr13) - pnorm(cr11+s_cr12+s_cr13))*Lr                                           #RC  | low0
+pnorm(cr11+s_cr12+s_cr13)*(1-Lr)                                                             #RC  | High1
+(pnorm(cr2+cr11+s_cr12+s_cr13) - pnorm(cr11+s_cr12+s_cr13))*(1-Lr)                                           #RC  | low1
