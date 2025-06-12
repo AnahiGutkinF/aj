@@ -460,74 +460,74 @@ sum(nested.gj.H$p.val<0.05)/47
   
   #### OPTION B ####
   
-  plot_aj_logp_histogram <- function(gj_obj, cj_obj, label = "AJ") {
-    # Build group names
-    name_g <- paste0(label, "g")
-    name_c <- paste0(label, "c")
-    
-    # Ensure flat numeric vectors
-    gj_vals <- as.numeric(unlist(gj_obj$p.val))
-    cj_vals <- as.numeric(unlist(cj_obj$p.val))
-    
-    # Replace zeros to avoid log(0)
-    gj_vals[gj_vals == 0] <- 0.001
-    cj_vals[cj_vals == 0] <- 0.001
-    
-    # Create individual data frames
-    gj_df <- data.frame(
-      log_pval = log(gj_vals),
-      test = name_g
-    )
-    cj_df <- data.frame(
-      log_pval = log(cj_vals),
-      test = name_c
-    )
-    
-    # Combine both into one data frame
-    plot_df <- dplyr::bind_rows(gj_df, cj_df)
-    
-    # Threshold in log scale
-    threshold_log <- log(0.05)
-    
-    # Create histogram with vertical line and label at y = 47
-    ggplot2::ggplot(plot_df, ggplot2::aes(x = log_pval, fill = test)) +
-      ggplot2::geom_histogram(alpha = 0.6, position = "identity", bins = 30, color = "black") +
-      ggplot2::geom_vline(xintercept = threshold_log, linetype = "dashed", color = "black", linewidth = 0.6) +
-      ggplot2::annotate("text",
-                        x = threshold_log,
-                        y = 47,
-                        label = "α = 0.05",
-                        vjust = -0.2, hjust = -0.1,
-                        size = 3, color = "black") +
-      ggplot2::labs(
-        x = "log(p-value)",
-        y = "Frequency",
-        fill = "Model"
-      ) +
-      ggplot2::coord_cartesian(ylim = c(0, 47)) +  # Force Y axis to go up to 47
-      ggplot2::theme_minimal(base_size = 10) +
-      ggplot2::theme(
-        legend.position = "top",
-        axis.title = ggplot2::element_text(size = 10),
-        axis.text = ggplot2::element_text(size = 9)
-      ) +
-      ggplot2::scale_fill_manual(values = c("gray30", "gray60"))
-  }
-  
-  p_AJ_hist <- plot_aj_logp_histogram(nested.gj, nested.cj, label = "AJ")
-  p_AJ_hist_H <- plot_aj_logp_histogram(nested.gj.H, nested.cj.H, label = "AJ")
-  p_AJ_hist_L <- plot_aj_logp_histogram(nested.gj.L, nested.cj.L, label = "AJ")
-  
-  
-  ggsave("aj_hist_hypothesis_testing.png", plot = p_AJ_hist,
-         width = 8, height = 4, dpi = 300, units = "in")
-  
-  ggsave("aj__hist_hypothesis_testing_H.png", plot = p_AJ_hist_H,
-         width = 8, height = 4, dpi = 300, units = "in")
-  
-  ggsave("aj__hist_hypothesis_testing_L.png", plot = p_AJ_hist_L,
-         width = 8, height = 4, dpi = 300, units = "in")
-  
+  # plot_aj_logp_histogram <- function(gj_obj, cj_obj, label = "AJ") {
+  #   # Build group names
+  #   name_g <- paste0(label, "g")
+  #   name_c <- paste0(label, "c")
+  #   
+  #   # Ensure flat numeric vectors
+  #   gj_vals <- as.numeric(unlist(gj_obj$p.val))
+  #   cj_vals <- as.numeric(unlist(cj_obj$p.val))
+  #   
+  #   # Replace zeros to avoid log(0)
+  #   gj_vals[gj_vals == 0] <- 0.001
+  #   cj_vals[cj_vals == 0] <- 0.001
+  #   
+  #   # Create individual data frames
+  #   gj_df <- data.frame(
+  #     log_pval = log(gj_vals),
+  #     test = name_g
+  #   )
+  #   cj_df <- data.frame(
+  #     log_pval = log(cj_vals),
+  #     test = name_c
+  #   )
+  #   
+  #   # Combine both into one data frame
+  #   plot_df <- dplyr::bind_rows(gj_df, cj_df)
+  #   
+  #   # Threshold in log scale
+  #   threshold_log <- log(0.05)
+  #   
+  #   # Create histogram with vertical line and label at y = 47
+  #   ggplot2::ggplot(plot_df, ggplot2::aes(x = log_pval, fill = test)) +
+  #     ggplot2::geom_histogram(alpha = 0.6, position = "identity", bins = 30, color = "black") +
+  #     ggplot2::geom_vline(xintercept = threshold_log, linetype = "dashed", color = "black", linewidth = 0.6) +
+  #     ggplot2::annotate("text",
+  #                       x = threshold_log,
+  #                       y = 47,
+  #                       label = "α = 0.05",
+  #                       vjust = -0.2, hjust = -0.1,
+  #                       size = 3, color = "black") +
+  #     ggplot2::labs(
+  #       x = "log(p-value)",
+  #       y = "Frequency",
+  #       fill = "Model"
+  #     ) +
+  #     ggplot2::coord_cartesian(ylim = c(0, 47)) +  # Force Y axis to go up to 47
+  #     ggplot2::theme_minimal(base_size = 10) +
+  #     ggplot2::theme(
+  #       legend.position = "top",
+  #       axis.title = ggplot2::element_text(size = 10),
+  #       axis.text = ggplot2::element_text(size = 9)
+  #     ) +
+  #     ggplot2::scale_fill_manual(values = c("gray30", "gray60"))
+  # }
+  # 
+  # p_AJ_hist <- plot_aj_logp_histogram(nested.gj, nested.cj, label = "AJ")
+  # p_AJ_hist_H <- plot_aj_logp_histogram(nested.gj.H, nested.cj.H, label = "AJ")
+  # p_AJ_hist_L <- plot_aj_logp_histogram(nested.gj.L, nested.cj.L, label = "AJ")
+  # 
+  # 
+  # ggsave("aj_hist_hypothesis_testing.png", plot = p_AJ_hist,
+  #        width = 8, height = 4, dpi = 300, units = "in")
+  # 
+  # ggsave("aj__hist_hypothesis_testing_H.png", plot = p_AJ_hist_H,
+  #        width = 8, height = 4, dpi = 300, units = "in")
+  # 
+  # ggsave("aj__hist_hypothesis_testing_L.png", plot = p_AJ_hist_L,
+  #        width = 8, height = 4, dpi = 300, units = "in")
+  # 
   
   ### OPTION C ###
   
@@ -566,7 +566,7 @@ sum(nested.gj.H$p.val<0.05)/47
       ggplot2::geom_vline(xintercept = threshold_log, linetype = "dashed", color = "black", linewidth = 0.6) +
       ggplot2::annotate("text",
                         x = threshold_log,
-                        y = 47,
+                        y = 40,
                         label = "α = 0.05",
                         vjust = -0.2, hjust = -0.1,
                         size = 3, color = "black") +
