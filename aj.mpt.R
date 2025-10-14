@@ -2,8 +2,8 @@
 ##### [aj.mpt] A-J multinomial process tree model
 ##### Fit Data Script
 ##### Autor: Anahi Gutkin
-##### Date: 27/03/2023
-##### Version: v5 (04/12/2024)
+##### Date: 27/03/2024
+##### Version: v5 (14/10/2025)
 #####===========================================================================
 
 #-------------------------------------------------------------------------------
@@ -36,7 +36,6 @@ conditions <- cbind("fit" = f, "model"=m); rm(cond, f, m, objetos)
 load("d.data.cl.rt.RData")
 n_sub <- nrow(d.data.cl.rt)# Number of subjects
 n.cores <- parallel::detectCores()-1
-
 
 
 #-------------------------------------------------------------------------------
@@ -1025,3 +1024,382 @@ df_tabla_cnf <- as.data.frame.matrix(tabla_cnf)
 
 writexl::write_xlsx(df_tabla_cnf, "df_tabla_cnf.xlsx")
 writexl::write_xlsx(as.data.frame.matrix(par.3clk), "par.3clk.xlsx")
+
+
+
+#-------------------------------------------------------------------------------
+# 7. Data Plots
+#-------------------------------------------------------------------------------
+
+#-----
+# 7.1. Proportion
+#-----
+library(dplyr)
+library(tidyr)
+library(stringr)
+
+
+long_counts <- d.data.cl.rt.df %>%
+  mutate(subject = row_number()) %>%                           
+  pivot_longer(
+    cols = -subject,
+    names_to = "var",
+    values_to = "count"
+  ) %>%
+  # 
+  tidyr::extract(
+    var,
+    into  = c("response","k","conf","speed"),
+    regex = "^([a-z]+)-k([123])-(high|low)([12])$"
+  ) %>%
+  mutate(
+    target_freq = recode(k, `1` = "65%", `2` = "50%", `3` = "35%"),
+    stimulus_type = if_else(response %in% c("hit","miss"), "Target", "Lure"),
+    confidence = if_else(conf == "high", "High", "Low"),
+    rt_bin     = if_else(speed == "1", "Fast", "Slow")
+  )
+
+
+totals_by_subject <- long_counts %>%
+  group_by(subject, k, target_freq, stimulus_type) %>%
+  summarise(total_stim = sum(count), .groups = "drop")
+
+
+props_by_subject <- long_counts %>%
+  left_join(totals_by_subject,
+            by = c("subject","k","target_freq","stimulus_type")) %>%
+  mutate(prop = if_else(total_stim > 0, count / total_stim, NA_real_))
+
+
+summary_prop <- props_by_subject %>%
+  group_by(response, target_freq, stimulus_type, confidence, rt_bin) %>%
+  summarise(
+    mean_prop = mean(prop, na.rm = TRUE),
+    sd_prop   = sd(prop,  na.rm = TRUE),
+    n         = sum(!is.na(prop)),
+    se_prop   = sd_prop / sqrt(n),
+    ci95_prop = 1.96 * se_prop,
+    .groups = "drop"
+  ) %>%
+  mutate(
+    response = factor(response,
+                      levels = c("hit", "miss", "fa", "cr"),
+                      labels = c("Hit", "Miss", "False Alarm", "Correct Rejection")),
+    target_freq = factor(target_freq,
+                         levels = c("65%", "50%", "35%"),
+                         labels = c("65% Target", "50% Target", "35% Target"))
+  )
+
+p <- ggplot(summary_prop,
+            aes(x = interaction(confidence, rt_bin),
+                y = mean_prop, fill = confidence)) +
+  geom_bar(stat = "identity",
+           position = position_dodge(width = 0.8),
+           width = 0.6, color = "black") +
+  geom_errorbar(aes(ymin = mean_prop - ci95_prop,
+                    ymax = mean_prop + ci95_prop),
+                position = position_dodge(width = 0.8),
+                width = 0.2) +
+  facet_grid(target_freq ~ response) +
+  scale_fill_grey(start = 0.3, end = 0.7, name = "Confidence") +
+  labs(
+    title = NULL,
+    x = "CL × RT",
+    y = "Mean Proportion (95% CI)"
+  ) +
+  theme_bw(base_size = 10, base_family = "serif") +
+  theme(
+    panel.grid.major = element_line(color = "grey80", size = 0.3),
+    panel.grid.minor = element_blank(),
+    axis.title = element_text(size = 10),
+    axis.text = element_text(size = 9),
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+    legend.position = "bottom",
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold", size = 10)
+  )
+
+p
+
+ggsave("mean_proportion_barplot.png", plot = p, width = 8, height = 5, dpi = 300)
+
+
+
+
+library(dplyr)
+library(ggplot2)
+
+# Filtrar respuestas correctas y alta confianza + calcular IC
+summary_hits_cr_highconf <- summary_prop %>%
+  filter(response %in% c("Hit", "Correct Rejection"),
+         confidence == "High") %>%
+  mutate(
+    ci_lower = mean_prop - 1.96 * se_prop,
+    ci_upper = mean_prop + 1.96 * se_prop
+  )
+
+# Crear gráfico con barras de error (IC)
+p2 <- ggplot(summary_hits_cr_highconf,
+             aes(x = target_freq,
+                 y = mean_prop,
+                 group = rt_bin,
+                 shape = rt_bin,
+                 linetype = rt_bin)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
+                width = 0.1, linewidth = 0.3) +
+  geom_line() +
+  facet_wrap(~ response, nrow = 1) +
+  scale_y_continuous(name = "Mean Proportion", limits = c(0.05, 0.45)) +
+  scale_x_discrete(name = "Target Frequency Condition") +
+  scale_shape_manual(values = c("Fast" = 16, "Slow" = 1)) +
+  scale_linetype_manual(values = c("Fast" = "solid", "Slow" = "dashed")) +
+  theme_bw(base_size = 8, base_family = "serif") +
+  theme(
+    panel.grid.major = element_line(color = "grey80", size = 0.3),
+    panel.grid.minor = element_blank(),
+    legend.position = c(0.98, 0.65),
+    legend.justification = c("right", "bottom"),
+    legend.background = element_rect(fill = "white", color = "black"),
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold", size = 10),
+    axis.title = element_text(size = 10),
+    axis.text = element_text(size = 10),
+    legend.text = element_text(size = 10),
+    legend.title = element_text(size = 10),
+    plot.title = element_text(size = 10),
+    strip.text.x = element_text(size = 10)
+  ) +
+  labs(
+    shape = "Response Time",
+    linetype = "Response Time"
+  )
+
+p2
+
+
+ggsave("selected_mean_proportion_barplot.png", plot = p2, width = 8, height = 3, dpi = 300)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#-----
+# 7.3. Full
+#-----
+
+wd <- getwd()
+df <- read.table( paste0(wd, "/data/data_juola.txt"), header = TRUE, sep = "\t")
+
+
+df_clean <- df %>%
+  filter(Target_frequency %in% c(2, 3, 4)) %>%
+  mutate(
+    trial_type = case_when(
+      Type_of_trial == 1 ~ "Hit",
+      Type_of_trial == 2 ~ "Miss",
+      Type_of_trial == 3 ~ "FA",
+      Type_of_trial == 4 ~ "CR"
+    ),
+    confidence_bin = case_when(
+      Confidence_level == 1 ~ "High",
+      Confidence_level %in% c(2, 3) ~ "Low"
+    ),
+    target_freq_label = case_when(
+      Target_frequency == 2 ~ "65%",
+      Target_frequency == 3 ~ "50%",
+      Target_frequency == 4 ~ "35%"
+    )
+  )
+
+mean_freq_per_subject <- df_clean %>%
+  group_by(Id, trial_type, confidence_bin, target_freq_label) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(trial_type, confidence_bin, target_freq_label) %>%
+  summarise(mean_n = mean(n), .groups = "drop")
+
+# Paso 3: calcular RTs como antes
+summary_rt <- df_clean %>%
+  group_by(trial_type, confidence_bin, target_freq_label) %>%
+  summarise(
+    median_rt = median(RT, na.rm = TRUE),
+    ric_rt = IQR(RT, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+summary_final <- left_join(mean_freq_per_subject, summary_rt,
+                           by = c("trial_type", "confidence_bin", "target_freq_label"))
+
+summary_table_ordered <- summary_final %>%
+  arrange(target_freq_label, trial_type, confidence_bin) %>%
+  mutate(
+    mean_n = round(mean_n, 1),
+    median_rt = round(median_rt),
+    ric_rt = round(ric_rt),
+    target_freq_label = factor(target_freq_label, levels = c("35%", "50%", "75%"))
+  ) %>%
+  select(target_freq_label, trial_type, confidence_bin, mean_n, median_rt, ric_rt)
+
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+# summary_table_ordered %>%
+#   select(-target_freq_label) %>%
+#   kable(
+#     format = "html",
+#     col.names = c("Response Category", "Confidence", "Mean Freq.", "Median RT (ms)", "IQR (ms)"),
+#     align = "lcccc"
+#   ) %>%
+#   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE, position = "center") %>%
+#   row_spec(0, bold = TRUE) %>%
+#   group_rows("Target Freq.: 35%", 1, 8) %>%
+#   group_rows("Target Freq.: 50%", 9, 16) %>%
+#   group_rows("Target Freq.: 75%", 17, 24)
+# 
+# library(webshot2)
+# library(magick)
+# install.packages("magick")
+# library(kableExtra)
+# 
+# save_kable(summary_table_ordered, file = "descript_freq_medianRT.png")
+
+descript_freq_medianRT <- summary_table_ordered %>%
+  select(-target_freq_label) %>%
+  kable(
+    format = "html",
+    col.names = c("Response Category", "Confidence", "Mean Freq.", "Median RT (ms)", "IQR (ms)"),
+    align = "lcccc"
+  ) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE, position = "center") %>%
+  row_spec(0, bold = TRUE) %>%
+  group_rows("Target Freq.: 35%", 1, 8) %>%
+  group_rows("Target Freq.: 50%", 9, 16) %>%
+  group_rows("Target Freq.: 75%", 17, 24)
+
+# Guardar como imagen
+save_kable(descript_freq_medianRT, file = "descript_freq_medianRT.png")
+
+-----
+  # 7.2. Table: Median RT and IQR by Trial Type, Confidence, and Target Frequency
+  #-----
+wd <- getwd()
+df <- read.table(paste0(wd, "/data/data_juola.txt"), header = TRUE, sep = "\t")
+
+# 2. Cargar paquetes
+library(dplyr)
+library(ggplot2)
+
+# # 3. Preparar datos para el gráfico
+# plot_data <- df %>%
+#   filter(Target_frequency %in% c(2, 3, 4)) %>%
+#   mutate(
+#     trial_type = case_when(
+#       Type_of_trial == 1 ~ "Hit",
+#       Type_of_trial == 2 ~ "Miss",
+#       Type_of_trial == 3 ~ "FA",
+#       Type_of_trial == 4 ~ "CR"
+#     ),
+#     confidence_bin = case_when(
+#       Confidence_level == 1 ~ "High",
+#       Confidence_level %in% c(2, 3) ~ "Low"
+#     ),
+#     target_freq_label = case_when(
+#       Target_frequency == 2 ~ "65%",
+#       Target_frequency == 3 ~ "50%",
+#       Target_frequency == 4 ~ "35%"
+#     ),
+#     condition = paste0(tolower(trial_type), "_", tolower(confidence_bin)),
+#     group = ifelse(trial_type %in% c("CR", "FA"), "Noise", "Signal")
+#   ) %>%
+#   group_by(trial_type, confidence_bin, target_freq_label, condition, group) %>%
+#   summarise(
+#     median_rt = median(RT, na.rm = TRUE),
+#     ric_rt = IQR(RT, na.rm = TRUE),
+#     .groups = "drop"
+#   )
+
+# 4. Etiquetas legibles para condiciones
+condition_order <- c(
+  "cr_high", "cr_low", "fa_low", "fa_high",
+  "miss_high", "miss_low", "hit_low", "hit_high"
+)
+condition_labels <- c(
+  "cr_high" = "CR High",
+  "cr_low" = "CR Low",
+  "fa_low" = "FA Low",
+  "fa_high" = "FA High",
+  "miss_high" = "Miss High",
+  "miss_low" = "Miss Low",
+  "hit_low" = "Hit Low",
+  "hit_high" = "Hit High"
+)
+
+plot_data <- plot_data %>%
+  mutate(
+    condition = factor(condition, levels = condition_order),
+    condition_pretty = factor(condition, labels = condition_labels),
+    target_freq_label = factor(target_freq_label, levels = c("35%", "50%", "75%"))
+  )
+
+# 5. Etiquetas para facet rows
+facet_labels <- c(
+  "35%" = "Target Frequency: 35%",
+  "50%" = "Target Frequency: 50%",
+  "75%" = "Target Frequency: 75%"
+)
+
+# 6. Generar el gráfico
+ggplot(plot_data, aes(x = condition_pretty, y = median_rt, color = group, group = group)) +
+  geom_point(size = 3) +
+  geom_line(linewidth = 0.8) +
+  geom_errorbar(aes(ymin = median_rt - ric_rt/2, ymax = median_rt + ric_rt/2), width = 0.2) +
+  facet_grid(rows = vars(target_freq_label), labeller = as_labeller(facet_labels)) +
+  scale_color_manual(values = c("Noise" = "black", "Signal" = "gray50")) +
+  labs(
+    x = "Category x CL",
+    y = "Median RT (ms)",
+    color = "Stimuly"
+  ) +
+  theme_bw(base_size = 12, base_family = "serif") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "bottom",
+    strip.background = element_blank(),
+    strip.text = element_text(face = "bold")
+  )
+
+table(plot_data$condition_pretty, plot_data$group)
+df %>% count(Type_of_trial, Confidence_level, Stimulus, Response)
