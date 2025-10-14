@@ -11,9 +11,9 @@
 #-------------------------------------------------------------------------------
 
 # set working directory
- 
+
 packages <- c("MPTinR", "openxlsx", "snow", "ggplot2", "tidyr", "patchwork",
-              "data.table", "parallel", "writexl")
+              "data.table", "parallel", "writexl", "caret")
 lapply(packages, function(pkg) {
   if (!require(pkg, character.only = TRUE)) {
     install.packages(pkg)
@@ -142,15 +142,12 @@ if (ncol(sel_list1) == ncol(sel_list2)) {
 }
 
 
-# writexl::write_xlsx(sel, "sel_output.xlsx")
-
 
 format_p <- function(p_values) {
   sapply(p_values, function(p) {
     if (p < 0.001) {
       "<.001"
     } else {
-      # Formatea sin el 0 inicial y a 3 decimales
       sub("^0", "", format(round(p, 3), nsmall = 3))
     }
   })
@@ -180,7 +177,6 @@ tabla1 <- data.frame(   # Table B.2
   AIC_AJgj = format_x2_aic(fit.aj.3gk$information.criteria$individual$AIC)
 )
 
-# write_xlsx(tabla1, "tabla1.xlsx") # optional
 
 #-------------------------------------------------------------------------------
 # 3.2 Nested model comparisons
@@ -232,7 +228,6 @@ table_nested1 <- data.frame( # Table 2.
   `p_AJgj` = format_p(nested.gj$p.val)
 )
 
-# write_xlsx(table_nested1, "table_nested1.xlsx") # Optional
 
 #-------------------------------------------------------------------------------
 # 3.2.3 Testing A-J assumptions about RTs (L parameters)
@@ -346,190 +341,6 @@ sum(nested.gj.H$p.val<0.05)/47
 # 6.3. p-values plots
 #-------------------------------------------------------------------------------
     
-  # ### OPTION A ###
-  #   
-  #   plot_aj_logp <- function(gj_obj, cj_obj, label = "AJ",
-  #                            xg_perc = 0.5, xc_perc = 0.1) {
-  #     
-  #     # Construir nombres de grupos
-  #     name_g <- paste0(label, "g")
-  #     name_c <- paste0(label, "c")
-  #     
-  #     # Asegurar que los vectores sean numéricos planos
-  #     gj_vals <- as.numeric(unlist(gj_obj$p.val))
-  #     cj_vals <- as.numeric(unlist(cj_obj$p.val))
-  #     
-  #     # Preparar los datos
-  #     gj_df <- data.frame(
-  #       log_pval = log(ifelse(gj_vals == 0, 0.001, gj_vals)),
-  #       pval = ifelse(gj_vals == 0, 0.001, gj_vals),
-  #       test = name_g
-  #     )
-  #     cj_df <- data.frame(
-  #       log_pval = log(ifelse(cj_vals == 0, 0.001, cj_vals)),
-  #       pval = ifelse(cj_vals == 0, 0.001, cj_vals),
-  #       test = name_c
-  #     )
-  #     
-  #     # Usar funciones explícitas de dplyr
-  #     plot_df <- dplyr::bind_rows(gj_df, cj_df) %>%
-  #       dplyr::group_by(test) %>%
-  #       dplyr::arrange(log_pval, .by_group = TRUE) %>%
-  #       dplyr::mutate(
-  #         rank = dplyr::row_number(),
-  #         significant = pval < 0.05
-  #       )
-  #     
-  #     # Sombreado para significativos
-  #     shade_df <- dplyr::filter(plot_df, significant == TRUE) %>%
-  #       dplyr::mutate(
-  #         ymin = log_pval,
-  #         ymax = log(0.05)
-  #       )
-  #     
-  #     # Cálculo de etiquetas de porcentaje
-  #     percent_labels <- plot_df %>%
-  #       dplyr::group_by(test) %>%
-  #       dplyr::summarise(
-  #         percent = mean(significant) * 100,
-  #         label = paste0(sprintf("%.1f", percent), "%"),
-  #         x_pos = dplyr::case_when(
-  #           dplyr::first(test) == name_c ~ log(0.05) - xc_perc,
-  #           dplyr::first(test) == name_g ~ log(0.05) - xg_perc,
-  #           TRUE ~ max(rank[significant])
-  #         ),
-  #         y_pos = dplyr::case_when(
-  #           dplyr::first(test) == name_c ~ log(0.05) - 1.2,
-  #           dplyr::first(test) == name_g ~ log(0.05) - 0.4,
-  #           TRUE ~ log(0.05) - 0.5
-  #         )
-  #       )
-  #     
-  #     # Crear gráfico
-  #     ggplot2::ggplot(plot_df, ggplot2::aes(x = rank, y = log_pval, color = test, shape = test)) +
-  #       ggplot2::geom_ribbon(data = shade_df,
-  #                            ggplot2::aes(x = rank, ymin = ymin, ymax = ymax, fill = test),
-  #                            alpha = 0.1, inherit.aes = FALSE) +
-  #       ggplot2::geom_hline(yintercept = log(0.05), linetype = "dashed", color = "black") +
-  #       ggplot2::annotate("text",
-  #                         x = max(plot_df$rank) - 0.5,
-  #                         y = log(0.05),
-  #                         label = "p = .05",
-  #                         hjust = 0, vjust = -0.4,
-  #                         size = 2.8, family = "sans") +
-  #       ggplot2::geom_line(linewidth = 0.6) +
-  #       ggplot2::geom_point(size = 1.6) +
-  #       ggplot2::geom_text(data = percent_labels,
-  #                          ggplot2::aes(x = x_pos, y = y_pos, label = label, color = test),
-  #                          family = "sans", size = 2.8, hjust = 1, show.legend = FALSE) +
-  #       ggplot2::labs(
-  #         x = "Data Sets",
-  #         y = "Log(p-value)",
-  #         color = NULL,
-  #         shape = NULL,
-  #         fill = NULL
-  #       ) +
-  #       ggplot2::scale_color_manual(values = setNames(c("gray30", "gray60"), c(name_g, name_c))) +
-  #       ggplot2::scale_shape_manual(values = setNames(c(16, 4), c(name_g, name_c))) +
-  #       ggplot2::scale_fill_manual(values = setNames(c("gray30", "gray60"), c(name_g, name_c))) +
-  #       ggplot2::theme_minimal(base_size = 8, base_family = "sans") +
-  #       ggplot2::theme(
-  #         plot.title = ggplot2::element_blank(),
-  #         axis.title = ggplot2::element_text(size = 8),
-  #         axis.text = ggplot2::element_text(size = 8),
-  #         legend.position = "bottom",
-  #         legend.text = ggplot2::element_text(size = 8)
-  #       )
-  #   }
-  #     
-  # p_AJ <- plot_aj_logp(gj_obj = nested.gj, cj_obj = nested.cj, label = "AJ", xg_perc = -6.5, xc_perc = -42)
-  # p_AJ_H <- plot_aj_logp(nested.gj.H, nested.cj.H, label = "AJ", xg_perc = -42, xc_perc = -46.5)
-  # p_AJ_L <- plot_aj_logp(nested.gj.L, nested.cj.L, label = "AJ", xg_perc = -30, xc_perc = -41)
-  #   
-  # ggsave("aj_hypothesis_testing.png", plot = p_AJ,
-  #        width = 8, height = 4, dpi = 300, units = "in")
-  #   
-  # ggsave("aj_hypothesis_testing_H.png", plot = p_AJ_H,
-  #        width = 8, height = 4, dpi = 300, units = "in")
-  #   
-  # ggsave("aj_hypothesis_testing_L.png", plot = p_AJ_L,
-  #        width = 8, height = 4, dpi = 300, units = "in")
-  
-  
-  
-  #### OPTION B ####
-  
-  # plot_aj_logp_histogram <- function(gj_obj, cj_obj, label = "AJ") {
-  #   # Build group names
-  #   name_g <- paste0(label, "g")
-  #   name_c <- paste0(label, "c")
-  #   
-  #   # Ensure flat numeric vectors
-  #   gj_vals <- as.numeric(unlist(gj_obj$p.val))
-  #   cj_vals <- as.numeric(unlist(cj_obj$p.val))
-  #   
-  #   # Replace zeros to avoid log(0)
-  #   gj_vals[gj_vals == 0] <- 0.001
-  #   cj_vals[cj_vals == 0] <- 0.001
-  #   
-  #   # Create individual data frames
-  #   gj_df <- data.frame(
-  #     log_pval = log(gj_vals),
-  #     test = name_g
-  #   )
-  #   cj_df <- data.frame(
-  #     log_pval = log(cj_vals),
-  #     test = name_c
-  #   )
-  #   
-  #   # Combine both into one data frame
-  #   plot_df <- dplyr::bind_rows(gj_df, cj_df)
-  #   
-  #   # Threshold in log scale
-  #   threshold_log <- log(0.05)
-  #   
-  #   # Create histogram with vertical line and label at y = 47
-  #   ggplot2::ggplot(plot_df, ggplot2::aes(x = log_pval, fill = test)) +
-  #     ggplot2::geom_histogram(alpha = 0.6, position = "identity", bins = 30, color = "black") +
-  #     ggplot2::geom_vline(xintercept = threshold_log, linetype = "dashed", color = "black", linewidth = 0.6) +
-  #     ggplot2::annotate("text",
-  #                       x = threshold_log,
-  #                       y = 47,
-  #                       label = "α = 0.05",
-  #                       vjust = -0.2, hjust = -0.1,
-  #                       size = 3, color = "black") +
-  #     ggplot2::labs(
-  #       x = "log(p-value)",
-  #       y = "Frequency",
-  #       fill = "Model"
-  #     ) +
-  #     ggplot2::coord_cartesian(ylim = c(0, 47)) +  # Force Y axis to go up to 47
-  #     ggplot2::theme_minimal(base_size = 10) +
-  #     ggplot2::theme(
-  #       legend.position = "top",
-  #       axis.title = ggplot2::element_text(size = 10),
-  #       axis.text = ggplot2::element_text(size = 9)
-  #     ) +
-  #     ggplot2::scale_fill_manual(values = c("gray30", "gray60"))
-  # }
-  # 
-  # p_AJ_hist <- plot_aj_logp_histogram(nested.gj, nested.cj, label = "AJ")
-  # p_AJ_hist_H <- plot_aj_logp_histogram(nested.gj.H, nested.cj.H, label = "AJ")
-  # p_AJ_hist_L <- plot_aj_logp_histogram(nested.gj.L, nested.cj.L, label = "AJ")
-  # 
-  # 
-  # ggsave("aj_hist_hypothesis_testing.png", plot = p_AJ_hist,
-  #        width = 8, height = 4, dpi = 300, units = "in")
-  # 
-  # ggsave("aj__hist_hypothesis_testing_H.png", plot = p_AJ_hist_H,
-  #        width = 8, height = 4, dpi = 300, units = "in")
-  # 
-  # ggsave("aj__hist_hypothesis_testing_L.png", plot = p_AJ_hist_L,
-  #        width = 8, height = 4, dpi = 300, units = "in")
-  # 
-  
-  ### OPTION C ###
-  
   plot_aj_logp_histogram <- function(gj_obj, cj_obj, label = "AJ") {
     # Build group names
     name_g <- paste0(label, "g")
@@ -756,9 +567,6 @@ load_files <- c("fit.2ht.5k.RData", "fit.sdt.5k.RData",
 par <- setNames(fit.2ht.5k$parameters$mean[,"estimates"],
                 row.names(fit.2ht.5k$parameters$mean))
 
-# (0.15*100)*(par["do"])*par["g1"]*par["s_g2"]*par["s_g3"]*par["s_g4"]*par["s_g5"]
-
-
 for (file in load_files) {
   load(file = file)
 }
@@ -864,12 +672,6 @@ write_xlsx(x = Gof.3j.2CL, path = "Gof.3j.2CL.xlsx")
 #-------------------------------------------------------------------------------
 # 6.4. Cross Validation
 #-------------------------------------------------------------------------------
-
-#install.packages("caret")
-library(caret)
-# library(doParallel)
-# library(parallel)
-
 
 datos <- read.delim("data_Juola.txt")
 datos$Confidence_level
@@ -988,39 +790,28 @@ parallel::stopCluster(cl)
 
 library(dplyr)
 library(tidyr)
+library(writexl)
 
-# Paso 1: Resumimos los datos para obtener las frecuencias y las medias de y por id y x
 resumen_datos <- datos %>%
   group_by(id, x) %>%
-  summarize(f_cat = n(),           # Contamos la frecuencia de cada x por id
-            m_y = mean(y, na.rm = TRUE))  # Calculamos la media de y para cada x e id
+  summarize(f_cat = n(),           
+            m_y = mean(y, na.rm = TRUE))  
 
-# Paso 2: Pivotamos los datos para que cada valor de x tenga su propia columna
+
 tabla_final <- resumen_datos %>%
   pivot_wider(
-    names_from = x,                # Los valores de x serán los nombres de las columnas
-    values_from = c(f_cat, m_y),  # Los valores serán la frecuencia y la media de y
-    names_glue = "{.value}_x{x}"   # Usamos esta opción para nombrar las columnas de forma clara
+    names_from = x,               
+    values_from = c(f_cat, m_y),  
+    names_glue = "{.value}_x{x}"  
   )
 
-# Mostramos la tabla final
-tabla_final
-install.packages("writexl")
-library(writexl)
 
 table(datos$Id, datos$Confidence_level, datos$Confidence_level)
 writexl::write_xlsx(tabla_final, "tabla_final.xlsx")
 tabla_cnf <- (table(datos$id, datos$x_cnf))
-df_tabla_cnf <- # Instala el paquete si no lo tienes
-  # install.packages("writexl")
-  
-  # Carga el paquete writexl para exportar a Excel
-  library(writexl)
 
-# Exporta directamente la tabla cruzada original
 df_tabla_cnf <- as.data.frame.matrix(tabla_cnf)
 
-# Guarda la tabla como un archivo Excel
 
 writexl::write_xlsx(df_tabla_cnf, "df_tabla_cnf.xlsx")
 writexl::write_xlsx(as.data.frame.matrix(par.3clk), "par.3clk.xlsx")
@@ -1032,14 +823,15 @@ writexl::write_xlsx(as.data.frame.matrix(par.3clk), "par.3clk.xlsx")
 #-------------------------------------------------------------------------------
 
 #-----
-# 7.1. Proportion
+# 7.1. Observed Proportion
 #-----
 library(dplyr)
 library(tidyr)
 library(stringr)
+library(dplyr)
+library(ggplot2)
 
-
-long_counts <- d.data.cl.rt.df %>%
+long_counts <- as.data.frame(d.data.cl.rt) %>%
   mutate(subject = row_number()) %>%                           
   pivot_longer(
     cols = -subject,
@@ -1119,17 +911,10 @@ p <- ggplot(summary_prop,
     strip.text = element_text(face = "bold", size = 10)
   )
 
-p
-
-ggsave("mean_proportion_barplot.png", plot = p, width = 8, height = 5, dpi = 300)
+# ggsave("mean_proportion_barplot.png", plot = p, width = 8, height = 5, dpi = 300)
 
 
 
-
-library(dplyr)
-library(ggplot2)
-
-# Filtrar respuestas correctas y alta confianza + calcular IC
 summary_hits_cr_highconf <- summary_prop %>%
   filter(response %in% c("Hit", "Correct Rejection"),
          confidence == "High") %>%
@@ -1138,7 +923,7 @@ summary_hits_cr_highconf <- summary_prop %>%
     ci_upper = mean_prop + 1.96 * se_prop
   )
 
-# Crear gráfico con barras de error (IC)
+# CI
 p2 <- ggplot(summary_hits_cr_highconf,
              aes(x = target_freq,
                  y = mean_prop,
@@ -1178,41 +963,144 @@ p2 <- ggplot(summary_hits_cr_highconf,
 p2
 
 
-ggsave("selected_mean_proportion_barplot.png", plot = p2, width = 8, height = 3, dpi = 300)
+# ggsave("selected_mean_proportion_barplot.png", plot = p2, width = 8, height = 3, dpi = 300)
 
 
 
+#-----
+# 7.1. Predicted vs Observed Proportion
+#-----
 
+# path: R/plot_obs_pred_high_function.R
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(tidyr)
+  library(ggplot2)
+  library(stringr)
+})
 
+plot_obs_pred_high <- function(fit, y_limits = c(0.05, 0.45)) {
+  # Why: ensure required slots exist and are matrices
+  if (is.null(fit$data$observed$individual) || is.null(fit$data$predicted$individual)) {
+    stop("fit must contain $data$observed$individual and $data$predicted$individual.")
+  }
+  m_obs  <- fit$data$observed$individual
+  m_pred <- fit$data$predicted$individual
+  if (!is.matrix(m_obs) || !is.matrix(m_pred)) stop("observed/predicted must be matrices.")
+  
+  # Why: unify predicted colnames to observed pattern when shape matches
+  if (!identical(colnames(m_pred), colnames(m_obs)) && ncol(m_pred) == ncol(m_obs)) {
+    colnames(m_pred) <- colnames(m_obs)
+  }
+  
+  # Keep only Hit/CR high1/high2 for k1..k3
+  keep_pat <- "^(hit|cr)-k[123]-high[12]$"
+  obs_high  <- m_obs [, grepl(keep_pat, colnames(m_obs )), drop = FALSE]
+  pred_high <- m_pred[, grepl(keep_pat, colnames(m_pred)), drop = FALSE]
+  if (ncol(obs_high) == 0 || ncol(pred_high) == 0) {
+    stop("No columns matched '^(hit|cr)-k[123]-high[12]$'.")
+  }
+  
+  # Denominators per column
+  make_denoms <- function(nms) {
+    k_num  <- as.integer(sub(".*-k([123])-.*", "\\1", nms))
+    is_hit <- grepl("^hit", nms)
+    den_hit <- c(65, 50, 35) # k1,k2,k3 targets
+    den_cr  <- c(35, 50, 65) # k1,k2,k3 lures
+    ifelse(is_hit, den_hit[k_num], den_cr[k_num])
+  }
+  den_obs  <- make_denoms(colnames(obs_high))
+  den_pred <- make_denoms(colnames(pred_high))
+  
+  # Proportions per subject/column
+  obs_prop  <- sweep(obs_high,  2, den_obs,  "/")
+  pred_prop <- sweep(pred_high, 2, den_pred, "/")
+  
+  # Long format with labels
+  to_long <- function(prop_mat, source_label) {
+    as.data.frame(prop_mat) |>
+      mutate(Subject = dplyr::row_number()) |>
+      tidyr::pivot_longer(-Subject, names_to = "col", values_to = "prop") |>
+      mutate(
+        Response = if_else(str_starts(col, "hit"), "Hit", "Correct Rejection"),
+        K = factor(stringr::str_match(col, "-k([123])-")[, 2],
+                   levels = c("1","2","3"),
+                   labels = c("65% Target","50% Target","35% Target")),
+        Speed = if_else(str_detect(col, "high1"), "Fast", "Slow"),
+        Source = source_label
+      ) |>
+      select(Subject, Response, K, Speed, Source, prop)
+  }
+  long_obs  <- to_long(obs_prop,  "Observed")
+  long_pred <- to_long(pred_prop, "Predicted")
+  long_all  <- bind_rows(long_obs, long_pred)
+  
+  # Summary stats
+  summary_both <- long_all |>
+    group_by(Response, K, Speed, Source) |>
+    summarise(
+      n = sum(!is.na(prop)),
+      mean_prop = mean(prop, na.rm = TRUE),
+      sd_prop   = sd(prop,   na.rm = TRUE),
+      se_prop   = sd_prop / sqrt(n),
+      ci_lower  = mean_prop - 1.96 * se_prop,
+      ci_upper  = mean_prop + 1.96 * se_prop,
+      .groups = "drop"
+    ) |>
+    mutate(
+      # Why: enforce panel and legend order
+      Response = factor(Response, levels = c("Hit","Correct Rejection")),
+      Speed    = factor(Speed, levels = c("Fast","Slow")),
+      Source   = factor(Source, levels = c("Observed","Predicted"))
+    )
+  
+  # Plot
+  p_both <- ggplot(
+    summary_both,
+    aes(x = K, y = mean_prop,
+        group = interaction(Source, Speed),
+        color = Source, linetype = Source, shape = Speed)
+  ) +
+    geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
+                  width = 0.10, linewidth = 0.3) +
+    geom_line() +
+    geom_point(size = 3) +
+    facet_wrap(~ Response, nrow = 1) +
+    scale_y_continuous(name = "Mean Proportion", limits = y_limits) +
+    scale_x_discrete(name = "Target Frequency Condition") +
+    scale_shape_manual(values = c("Fast" = 16, "Slow" = 1)) +
+    theme_bw(base_size = 8, base_family = "serif") +
+    theme(
+      panel.grid.major = element_line(color = "grey80", linewidth = 0.3),
+      panel.grid.minor = element_blank(),
+      legend.position = "right",
+      legend.background = element_rect(fill = "white", color = "black"),
+      strip.background = element_blank(),
+      strip.text = element_text(face = "bold", size = 10),
+      axis.title = element_text(size = 10),
+      axis.text  = element_text(size = 10)
+    ) +
+    labs(
+      color = "Source",
+      linetype = "Source",
+      shape = "Response Time"
+    )
+  
+  list(summary = summary_both, plot = p_both)
+}
 
+# --- Example usage ---
+res_aj <- plot_obs_pred_high(fit.aj.3clk)
+print(res_aj$plot)
+ggsave("observed_vs_predicted_AJ.png", res_aj$plot, width = 8, height = 3, dpi = 300)
 
+res_2ht <- plot_obs_pred_high(fit.2ht)
+print(res_2ht$plot)
+ggsave("observed_vs_predicted_2HT.png", res_2ht$plot, width = 8, height = 3, dpi = 300)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+res_sdt <- plot_obs_pred_high(fit.sdt)
+print(res_sdt$plot)
+ggsave("observed_vs_predicted_SDT.png", res_sdt$plot, width = 8, height = 3, dpi = 300)
 
 
 #-----
