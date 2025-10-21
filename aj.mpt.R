@@ -13,7 +13,7 @@
 # set working directory
 
 packages <- c("MPTinR", "openxlsx", "snow", "ggplot2", "tidyr", "patchwork",
-              "data.table", "parallel", "writexl", "caret")
+              "data.table", "parallel", "writexl", "caret", "snowfall")
 lapply(packages, function(pkg) {
   if (!require(pkg, character.only = TRUE)) {
     install.packages(pkg)
@@ -68,7 +68,8 @@ fit.2ht<-  fit.model(model.filename = m.2ht, data = d.data.cl.rt,
                      multicore = "individual", nCPU = n.cores, sfInit = TRUE,
                      n.optim =  20,
                      ci = 95, 
-                     use.gradient = F);save(fit.2ht, file = "fit.2ht.RData") 
+                     use.gradient = F);
+save(fit.2ht, file = "fit.2ht.RData") 
 
 fit.sdt<-  fit.model(model.filename = m.sdt, data = d.data.cl.rt, 
                      multicore = "individual", nCPU = n.cores, sfInit = TRUE,
@@ -177,7 +178,7 @@ tabla1 <- data.frame(   # Table B.2
   AIC_AJgj = format_x2_aic(fit.aj.3gk$information.criteria$individual$AIC)
 )
 
-
+# writexl::write_xlsx(tabla1, path = "tableb2.xlsx")
 #-------------------------------------------------------------------------------
 # 3.2 Nested model comparisons
 #-------------------------------------------------------------------------------
@@ -524,12 +525,15 @@ check.mpt(m.aj.5k, restrictions.filename = list("s_g1=1", "s_g2=1",
 check.mpt(m.aj.5k, restrictions.filename = list("s_cl2=0", "s_cl3=0",
                                                 "s_cl4=0", "s_cl5=0"))
 
+n.cores <- parallel::detectCores()-1
+
 fit.2ht.5k <- fit.model(model.filename = m.2ht.5k, data = data.5j.2CL, 
                          multicore = "individual", nCPU = n.cores, sfInit = TRUE,
                          n.optim =  20,
                          ci = 95, 
-                         use.gradient = F
-                         );save(fit.2ht.5k, file = "fit.2ht.5k.RData") 
+                         use.gradient = F,
+                         )
+save(fit.2ht.5k, file = "fit.2ht.5k.RData") 
 
 fit.aj.5k.3clk <- fit.model(model.filename = m.aj.5k, data = data.5j.2CL, 
                            multicore = "individual", nCPU = n.cores, sfInit = TRUE,
@@ -563,19 +567,22 @@ fit.sdt.5k <- fit.model(model.filename = m.sdt.5k, data = data.5j.2CL,
 load_files <- c("fit.2ht.5k.RData", "fit.sdt.5k.RData",
                 "fit.aj.5k.3gk.RData", "fit.aj.5k.3clk.RData")
 
-
+#Appendix B (Table B.1)
 par <- setNames(fit.2ht.5k$parameters$mean[,"estimates"],
                 row.names(fit.2ht.5k$parameters$mean))
 
-for (file in load_files) {
-  load(file = file)
-}
+# for (file in load_files) {
+#   load(file = file)
+# }
+15*(1-par["do"])*par["g5"]*par["s_g1"]*par["s_g2"]*par["s_g3"]*par["s_g4"]
+
+
 
 sel2 <- select.mpt(list(fit.2ht.5k, fit.sdt.5k, fit.aj.5k.3clk, fit.aj.5k.3gk))
 
-sel <- transform(sel2, 
-                 "p%smaller.05" = (p.smaller.05 / 47) * 100, 
-                 "AIC%best" = (AIC.best / 47) * 100)[, 
+sel <- transform(sel2,
+                 "p%smaller.05" = (p.smaller.05 / 47) * 100,
+                 "AIC%best" = (AIC.best / 47) * 100)[,
                                                      c("model", "n.parameters",
                                                        "p.smaller.05", "p%smaller.05",
                                                        "AIC.best", "AIC%best")]
