@@ -13,7 +13,9 @@
 # set working directory
 
 packages <- c("MPTinR", "openxlsx", "snow", "ggplot2", "tidyr", "patchwork",
-              "data.table", "parallel", "writexl", "caret", "snowfall")
+              "data.table", "parallel", "writexl", "caret", "snowfall", "dplyr", 
+              "knitr", "kableExtra", "stringr")
+
 lapply(packages, function(pkg) {
   if (!require(pkg, character.only = TRUE)) {
     install.packages(pkg)
@@ -21,8 +23,12 @@ lapply(packages, function(pkg) {
   }
 })
 
-# source("aj.model.R")
 source("aj.fun.R")
+
+data_dir <- path.expand("~/GitHub/aj/data")
+nml_dir <- path.expand("~/GitHub/aj/nml")
+fit_dir <- path.expand("~/GitHub/aj/main_fits")
+fig_dir <- path.expand("~/GitHub/aj/figures")
 
 # -------------------------------------------------------------------------------
 # 2. Conditions & Data
@@ -32,11 +38,11 @@ objetos <- ls()
 cond <- c("aj.3clk","aj.3gk", "sdt", "2ht")
 f <- paste0("fit.", cond) 
 m <- paste0("m.", cond) 
+
 conditions <- cbind("fit" = f, "model"=m); rm(cond, f, m, objetos)
-load("d.data.cl.rt.RData")
+load(file.path( data_dir, "d.data.cl.rt.RData")) #load RT binned data 
 n_sub <- nrow(d.data.cl.rt)# Number of subjects
 n.cores <- parallel::detectCores()-1
-
 
 #-------------------------------------------------------------------------------
 # 3. Main Models
@@ -68,8 +74,8 @@ fit.2ht<-  fit.model(model.filename = m.2ht, data = d.data.cl.rt,
                      multicore = "individual", nCPU = n.cores, sfInit = TRUE,
                      n.optim =  20,
                      ci = 95, 
-                     use.gradient = F);
-save(fit.2ht, file = "fit.2ht.RData") 
+                     use.gradient = F)
+save(fit.2ht, file = file.path(fit_dir, "fit.2ht.RData"))
 
 fit.sdt<-  fit.model(model.filename = m.sdt, data = d.data.cl.rt, 
                      multicore = "individual", nCPU = n.cores, sfInit = TRUE,
@@ -77,7 +83,9 @@ fit.sdt<-  fit.model(model.filename = m.sdt, data = d.data.cl.rt,
                      ci = 95, 
                      lower.bound= c(-Inf, 0, 0, 0.1, rep(0,6), 0.1),
                      upper.bound= c(rep(Inf, 4), rep(1, 2), rep(Inf,2), rep(1,2), Inf),
-                     use.gradient = F);save(fit.sdt, file = "fit.sdt.RData")
+                     use.gradient = F)
+save(fit.sdt, file = file.path(fit_dir, "fit.sdt.RData"))
+
 
 fit.aj <-   fit.model(model.filename = m.aj, data = d.data.cl.rt, 
                       multicore = "individual", nCPU = n.cores, sfInit = TRUE,
@@ -86,9 +94,9 @@ fit.aj <-   fit.model(model.filename = m.aj, data = d.data.cl.rt,
                       output = "full",
                       lower.bound= c(0.1, rep(-Inf,1), 0.1, rep(0,16), 0.1),
                       upper.bound= c(rep(Inf,3), rep(1,5), Inf, Inf, rep(1,9), Inf)
-                      );save(fit.aj, file = "fit.aj.RData")
+                      )
+save(fit.aj, file = file.path(fit_dir, "fit.aj.RData"))
 
-# check.mpt(m.aj, restrictions.filename = list("s_g1=1", "s_g2=1"))
 fit.aj.3clk <-  fit.model(model.filename = m.aj, data = d.data.cl.rt, 
                           multicore = "individual", nCPU = n.cores, sfInit = TRUE,
                           n.optim =  20,
@@ -97,7 +105,8 @@ fit.aj.3clk <-  fit.model(model.filename = m.aj, data = d.data.cl.rt,
                           lower.bound= c(0.1, rep(-8, 1), 0.1, rep(0,14), 0.1),
                           upper.bound= c(rep(Inf,3), rep(1, 5), rep(Inf,2), rep(1,7), 1),
                           restrictions.filename = list("s_g1=1", "s_g2=1")
-                          );save(fit.aj.3clk, file = "fit.aj.3clk.RData")
+                          )
+save(fit.aj.3clk, file = file.path(fit_dir, "fit.aj.3clk.RData"))
 
 # check.mpt(m.aj, restrictions.filename = list("s_cl2=1", "s_cl3=1"))
 fit.aj.3gk <-  fit.model(model.filename = m.aj.3gk, data = d.data.cl.rt, 
@@ -108,13 +117,16 @@ fit.aj.3gk <-  fit.model(model.filename = m.aj.3gk, data = d.data.cl.rt,
                           lower.bound= c(0.1, -8, 0.1, rep(0,14), 0.1),
                           upper.bound= c(rep(Inf, 3), rep(1, 14), Inf),
                           restrictions.filename = list("s_cl2=1", "s_cl3=1"),
-                          use.gradient = T);save(fit.aj.3gk, file = "fit.aj.3gk.RData")
+                          use.gradient = T)
+save(fit.aj.3gk, file.path(fit_dir, file = "fit.aj.3gk.RData"))
 
+
+# Loas main fits
 load_files <- c("fit.2ht.RData", "fit.sdt.RData", "fit.aj.RData", 
                 "fit.aj.3clk.RData", "fit.aj.3gk.RData")
 
 for (file in load_files) {
-  load(file = file)
+  load(file = file.path(fit_dir, file))
 }
 
 #-------------------------------------------------------------------------------
@@ -142,8 +154,6 @@ if (ncol(sel_list1) == ncol(sel_list2)) {
   stop("Error: list with different number of columns.")
 }
 
-
-
 format_p <- function(p_values) {
   sapply(p_values, function(p) {
     if (p < 0.001) {
@@ -158,9 +168,8 @@ format_x2_aic <- function(values) {
   format(round(values, 2), nsmall = 2)
 }
 
-
-tabla1 <- data.frame(   # Table B.2
-  Id = 1:47,
+tabla1 <- data.frame(   # Table B.3
+  Id = 1:n_sub,
   `X2(df=51)` = format_x2_aic(fit.2ht$goodness.of.fit$individual$G.Squared),
   p_2HT = format_p(fit.2ht$goodness.of.fit$individual$p.value),
   AIC_2HT = format_x2_aic(fit.2ht$information.criteria$individual$AIC),
@@ -178,7 +187,8 @@ tabla1 <- data.frame(   # Table B.2
   AIC_AJgj = format_x2_aic(fit.aj.3gk$information.criteria$individual$AIC)
 )
 
-# writexl::write_xlsx(tabla1, path = "tableb2.xlsx")
+writexl::write_xlsx(tabla1, path = file.path(fig_dir, "tableB3_3k.xlsx"))
+
 #-------------------------------------------------------------------------------
 # 3.2 Nested model comparisons
 #-------------------------------------------------------------------------------
@@ -198,14 +208,14 @@ fit.aj.3clk.r1 <- fit.model(model.filename = m.aj, data = d.data.cl.rt,
                             restrictions.filename = list("s_g1=1", "s_g2=1",
                                                          "s_cl2=0", "s_cl3=0"))
 
-# save(fit.aj.3clk.r1, file = "fit.aj.3clk.r1.RData")
-load("fit.aj.3clk.r1.RData")
+save(fit.aj.3clk.r1, file = file.path(fit_dir, "fit.aj.3clk.r1.RData"))
+load(file.path(fit_dir, "fit.aj.3clk.r1.RData"))
 
 nested.cj <- test.nested(model.gen = fit.aj.3clk, model.rest = fit.aj.3clk.r1)
 nested.gj <- test.nested(model.gen = fit.aj.3gk , model.rest = fit.aj.3clk.r1)
 
-sum(nested.cj$p.val<0.05)/47
-sum(nested.gj$p.val<0.05)/47
+sum(nested.cj$p.val<0.05)/n_sub
+sum(nested.gj$p.val<0.05)/n_sub
 
 format_p <- function(p_values) {
   sapply(p_values, function(p) {
@@ -219,7 +229,7 @@ format_p <- function(p_values) {
   })
 }
 
-table_nested1 <- data.frame( # Table 2.
+table_nested1 <- data.frame( # Table for Fig 7
   Id = 1:47,
   
   `G2 (df=3)_AJcj` = nested.cj$G2,
@@ -246,9 +256,9 @@ fit.aj.3clk.rL <-  fit.model(model.filename = m.aj,
                             restrictions.filename = list("s_Lgn=1", "s_Lgo=1",
                                                           "s_Ls=1",
                                                           "s_g1=1", "s_g2=1"))
-# save(fit.aj.3clk.rL, file = "fit.aj.3clk.rL.RData")
-load("fit.aj.3clk.rL.RData")
 
+save(fit.aj.3clk.rL, file = file.path(fit_dir,"fit.aj.3clk.rL.RData"))
+load(file.path(fit_dir,"fit.aj.3clk.rL.RData"))
 
 check.mpt(m.aj, restrictions.filename = list("s_Lgn=1", "s_Lgo=1", "s_Ls=1",
                                              "s_cl2=0", "s_cl3=0"))
@@ -261,16 +271,17 @@ fit.aj.3g.rL <-  fit.model(model.filename = m.aj,
                            restrictions.filename = list("s_Lgn=1", "s_Lgo=1",
                                                         "s_Ls=1",
                                                         "s_cl2=0", "s_cl3=0"))
-# save(fit.aj.3g.rL, file = "fit.aj.3g.rL.RData")
-load("fit.aj.3g.rL.RData")
+
+save(fit.aj.3g.rL, file = file.path(fit_dir,"fit.aj.3g.rL.RData"))
+load(file.path(fit_dir,"fit.aj.3g.rL.RData"))
 
 nested.cj.L <- test.nested(model.gen = fit.aj.3clk, model.rest = fit.aj.3clk.rL)
 nested.gj.L <- test.nested(model.gen = fit.aj.3gk , model.rest = fit.aj.3g.rL)
 
-sum(nested.cj.L$p.val<.05)/47
-sum(nested.gj.L$p.val<.05)/47
+sum(nested.cj.L$p.val<.05)/n_sub
+sum(nested.gj.L$p.val<.05)/n_sub
 
-table_nested2 <- data.frame( # Table 3.
+table_nested2 <- data.frame( # Table for Figure 8
   Id = 1:47,
   
   `G2 (df=3)_AJcj` = nested.cj.L$G2,
@@ -280,10 +291,8 @@ table_nested2 <- data.frame( # Table 3.
   `p_AJgj` = format_p(nested.gj.L$p.val)
 )
 
-# write_xlsx(table_nested2, "table_nested2.xlsx")
-
 #-------------------------------------------------------------------------------
-# 6.2.4 Testing A-J assumptions about CLs (H parameters)
+# 3.2.4 Testing A-J assumptions about CLs (H parameters)
 #-------------------------------------------------------------------------------
 
 check.mpt(m.aj, restrictions.filename = list("s_Hff=1", "s_Hfs=1",
@@ -300,13 +309,12 @@ fit.aj.3clk.rH <-  fit.model(model.filename = m.aj,
                              restrictions.filename = list("s_Hff=1", "s_Hfs=1",
                                                           "s_Hgf=1","s_Hgs=1",
                                                           "s_g1=1",  "s_g2=1"));
-# save(fit.aj.3clk.rH, file = "fit.aj.3clk.rH.RData");
-load("fit.aj.3clk.rH.RData")
+save(fit.aj.3clk.rH, file = file.path(fit_dir,"fit.aj.3clk.rH.RData"))
+load(file.path(fit_dir,"fit.aj.3clk.rH.RData"))
 
 check.mpt(m.aj, restrictions.filename = list("s_Hff=1", "s_Hfs=1",
                                              "s_Hgf=1","s_Hgs=1",
                                              "s_cl2=0",  "s_cl3=0"))
-
 fit.aj.3gk.rH <-  fit.model(model.filename = m.aj,
                             data = d.data.cl.rt,
                             ci = 95, 
@@ -316,18 +324,17 @@ fit.aj.3gk.rH <-  fit.model(model.filename = m.aj,
                             restrictions.filename = list("s_Hff=1", "s_Hfs=1",
                                                          "s_Hgf=1","s_Hgs=1",
                                                          "s_cl2=0",  "s_cl3=0"));
-# save(fit.aj.3gk.rH, file = "fit.aj.3gk.rH.RData");
-load("fit.aj.3gk.rH.RData")
+save(fit.aj.3gk.rH, file = file.path(fit_dir,"fit.aj.3gk.rH.RData"));
+load(file.path(fit_dir,"fit.aj.3gk.rH.RData"))
 
 nested.cj.H <- test.nested(model.gen = fit.aj.3clk, model.rest = fit.aj.3clk.rH)
 nested.gj.H <- test.nested(model.gen = fit.aj.3gk, model.rest = fit.aj.3gk.rH )
 
-
-sum(nested.cj.H$p.val<0.05)/47
-sum(nested.gj.H$p.val<0.05)/47
+sum(nested.cj.H$p.val<0.05)/n_sub
+sum(nested.gj.H$p.val<0.05)/n_sub
     
-    table_nested3 <- data.frame( # Table 4.
-      Id = 1:47,
+    table_nested3 <- data.frame( # Table for Figure 9
+      Id = 1:n_sub,
       
       `G2 (df=4)_AJcj` = nested.cj.H$G2,
       `p_AJcj` = format_p(nested.cj.H$p.val),
@@ -335,19 +342,15 @@ sum(nested.gj.H$p.val<0.05)/47
       `G2 (df=4)_AJgj` = nested.gj.H$G2,
       `p_AJgj` = format_p(nested.gj.H$p.val)
     )
-    
-    # write_xlsx(table_nested3, "table_nested3.xlsx") # Optional
 
 #-------------------------------------------------------------------------------
-# 6.3. p-values plots
+# 3.3. p-values plots (Figure 7 - 9)
 #-------------------------------------------------------------------------------
-    
+
   plot_aj_logp_histogram <- function(gj_obj, cj_obj, label = "AJ") {
-    # Build group names
     name_g <- paste0(label, "g")
     name_c <- paste0(label, "c")
     
-    # Ensure flat numeric vectors
     gj_vals <- as.numeric(unlist(gj_obj$p.val))
     cj_vals <- as.numeric(unlist(cj_obj$p.val))
     
@@ -365,13 +368,13 @@ sum(nested.gj.H$p.val<0.05)/47
       test = name_c
     )
     
-    # Combine both into one data frame
+    # Combine
     plot_df <- dplyr::bind_rows(gj_df, cj_df)
     
     # Threshold in log scale
     threshold_log <- log(0.05)
     
-    # Create faceted histogram with vertical line and label at y = 47
+    # Create faceted histogram with vertical line
     ggplot2::ggplot(plot_df, ggplot2::aes(x = log_pval, fill = test)) +
       ggplot2::geom_histogram(alpha = 0.9, bins = 30, color = "black") +
       ggplot2::geom_vline(xintercept = threshold_log, linetype = "dashed", color = "black", linewidth = 0.6) +
@@ -395,43 +398,45 @@ sum(nested.gj.H$p.val<0.05)/47
         plot.title = ggplot2::element_text(size = 11, face = "bold"),
         axis.title = ggplot2::element_text(size = 10),
         axis.text = ggplot2::element_text(size = 9),
-        legend.position = "none"  # optional: hide legend since facets label groups
+        legend.position = "none"  # hide legend
       )
   }
   
+  p_AJ_hist    <- plot_aj_logp_histogram(nested.gj, nested.cj, label = "AJ") # Fig7
+  p_AJ_hist_L  <- plot_aj_logp_histogram(nested.gj.L, nested.cj.L, label = "AJ") # Fig8
+  p_AJ_hist_H  <- plot_aj_logp_histogram(nested.gj.H, nested.cj.H, label = "AJ") # Fig9
   
-  
-  p_AJ_hist    <- plot_aj_logp_histogram(nested.gj, nested.cj, label = "AJ")
-  p_AJ_hist_H  <- plot_aj_logp_histogram(nested.gj.H, nested.cj.H, label = "AJ")
-  p_AJ_hist_L  <- plot_aj_logp_histogram(nested.gj.L, nested.cj.L, label = "AJ")
-  
-  
-  ggsave("aj_hist_hypothesis_testing.png", plot = p_AJ_hist,
+  ggsave(file.path(fig_dir,"aj_hist_hypothesis_testing.png"),
+         plot = p_AJ_hist,
          width = 8, height = 4, dpi = 300, units = "in")
   
-  ggsave("aj__hist_hypothesis_testing_H.png", plot = p_AJ_hist_H,
+  ggsave(file.path(fig_dir,"aj__hist_hypothesis_testing_H.png"),
+         plot = p_AJ_hist_H,
          width = 8, height = 4, dpi = 300, units = "in")
   
-  ggsave("aj__hist_hypothesis_testing_L.png", plot = p_AJ_hist_L,
+  ggsave(file.path(fig_dir,"aj__hist_hypothesis_testing_L.png"),
+         plot = p_AJ_hist_L,
          width = 8, height = 4, dpi = 300, units = "in")
   
 #-------------------------------------------------------------------------------
 # 4. Import fits 
 #-------------------------------------------------------------------------------
 
-archivos_fit <- list.files(getwd(), pattern = "^fit\\.")
+archivos_fit <- list.files(fit_dir, pattern = "^fit\\.")
 for (archivo in archivos_fit) {
-  ruta_archivo <- file.path(getwd(), archivo)
+  ruta_archivo <- file.path(fit_dir, archivo)
   load(ruta_archivo, .GlobalEnv)  # Carga el objeto en el entorno global
   cat("Imported data:", archivo, "\n")
   }
 
-load("~/R.Projects/aj/nmlaj.RData")
-load("~/R.Projects/aj/nml2ht.RData")
-load("~/R.Projects/aj/nmlsdt.RData")
+#import nml penality
+
+load(file.path(nml_dir, "nmlaj.RData"))
+load(file.path(nml_dir, "nml2ht.RData"))
+load(file.path(nml_dir, "nmlsdt.RData"))
 
 #-------------------------------------------------------------------------------
-# 7. Grouping par estimations & Mean par
+# 5. Grouping par estimations & Mean par
 #-------------------------------------------------------------------------------
 
 par.3clk <- do.call(rbind, lapply(1:n_sub, function(i) fit.aj.3clk$parameters$individual[,"estimates",i]))
@@ -440,12 +445,13 @@ colnames(par.3clk) <- names(fit.aj.3clk$parameters$individual[,"estimates",1])
 colnames(par.gk) <- names(fit.aj.3gk$parameters$individual[,"estimates",1])
 mean_3clk <- colMeans(par.3clk[, ])
 mean_gk <- colMeans(par.gk[, ])
+
 # Mean parameters
 print(mean_3clk)
 print(mean_gk)
 
 #-------------------------------------------------------------------------------
-# 9. Restructure data with 5 target conditions 
+# 6. Restructure data with 5 target conditions 
 #-------------------------------------------------------------------------------
 
 # Define categories and confidence levels
@@ -458,7 +464,7 @@ l.cnf2 <- paste0(rep(l.x, each = 2), c("-high", "-low"))
 cat.order <- paste0(rep(cat, each = 3 * 2), "-", k, "-", rep(cl, each = 2), c(1, 0))
 
 # Read and preprocess data
-d.juola <- read.delim("data_Juola.txt")
+d.juola <- read.delim(file.path(data_dir, "data_Juola.txt"))
 d.juola$Stimulus <- change_factor_levels(as.factor(d.juola$Stimulus), c("new_item", "learned_item"))
 d.juola$Type_of_trial <- change_factor_levels(as.factor(d.juola$Type_of_trial), c("hit", "miss", "fa", "cr"))
 d.juola$Confidence_level <- change_factor_levels(as.factor(d.juola$Confidence_level), c("high", "medium", "low"))
@@ -511,19 +517,17 @@ data.5j.3CL <- data.5j.3CL[, cat.5j.3CL]
 data.5j.2CL <- data.5j.2CL[, cat.5j.2CL]
 
 # Save data
-save(data.5j.3CL, file = "data.5j.3CL.RData")
-save(data.5j.2CL, file = "data.5j.2CL.RData")
-
-
+save(data.5j.3CL, file = file.path(data_dir, "data.5j.3CL.RData"))
+save(data.5j.2CL, file = file.path(data_dir, "data.5j.2CL.RData"))
 
 #-------------------------------------------------------------------------------
-# 10. Model fitting for 5 %target conditions
+# 7. Model fitting for 5 %target conditions
 #-------------------------------------------------------------------------------
 
-check.mpt(m.aj.5k, restrictions.filename = list("s_g1=1", "s_g2=1",
-                                                "s_g3=1", "s_g4=1"))
-check.mpt(m.aj.5k, restrictions.filename = list("s_cl2=0", "s_cl3=0",
-                                                "s_cl4=0", "s_cl5=0"))
+# check.mpt(m.aj.5k, restrictions.filename = list("s_g1=1", "s_g2=1",
+#                                                 "s_g3=1", "s_g4=1"))
+# check.mpt(m.aj.5k, restrictions.filename = list("s_cl2=0", "s_cl3=0",
+#                                                 "s_cl4=0", "s_cl5=0"))
 
 n.cores <- parallel::detectCores()-1
 
@@ -533,7 +537,7 @@ fit.2ht.5k <- fit.model(model.filename = m.2ht.5k, data = data.5j.2CL,
                          ci = 95, 
                          use.gradient = F,
                          )
-save(fit.2ht.5k, file = "fit.2ht.5k.RData") 
+save(fit.2ht.5k, file = file.path(fit_dir, "fit.2ht.5k.RData"))
 
 fit.aj.5k.3clk <- fit.model(model.filename = m.aj.5k, data = data.5j.2CL, 
                            multicore = "individual", nCPU = n.cores, sfInit = TRUE,
@@ -544,7 +548,8 @@ fit.aj.5k.3clk <- fit.model(model.filename = m.aj.5k, data = data.5j.2CL,
                            use.gradient = F,
                            restrictions.filename = list("s_g1=1", "s_g2=1",
                                                         "s_g3=1", "s_g4=1"),
-                           );save(fit.aj.5k.3clk, file = "fit.aj.5k.3clk.RData") 
+                           )
+save(fit.aj.5k.3clk, file = file.path(fit_dir, "fit.aj.5k.3clk.RData"))
 
 fit.aj.5k.3gk <- fit.model(model.filename = m.aj.5k, data = data.5j.2CL, 
                        multicore = "individual", nCPU = n.cores, sfInit = TRUE,
@@ -555,40 +560,43 @@ fit.aj.5k.3gk <- fit.model(model.filename = m.aj.5k, data = data.5j.2CL,
                        use.gradient = F,
                        restrictions.filename = list("s_cl2=0", "s_cl3=0",
                                                     "s_cl4=0", "s_cl5=0"),
-                       );save(fit.aj.5k.3gk, file = "fit.aj.5k.3gk") 
+                       )
+save(fit.aj.5k.3gk, file = file.path(fit_dir, "fit.aj.5k.3gk.RData")) 
 
 fit.sdt.5k <- fit.model(model.filename = m.sdt.5k, data = data.5j.2CL, 
                             multicore = "n.optim", sfInit = TRUE, ci = 95, 
                             lower.bound = c(-8, rep(0,2), 0.1, rep(0, 8), 0.1),
                             upper.bound = c(rep(Inf, 4), rep(1, 2), rep(Inf,4), rep(1,2), Inf),
                             use.gradient = FALSE
-                            );save(fit.sdt.5k, file = "fit.sdt.5k.RData")
+                            )
+save(fit.sdt.5k, file = file.path(fit_dir, "fit.sdt.5k.RData"))
 
+
+# Load 5 categ. fits
 load_files <- c("fit.2ht.5k.RData", "fit.sdt.5k.RData",
                 "fit.aj.5k.3gk.RData", "fit.aj.5k.3clk.RData")
+
+for (file in load_files) {
+  load(file = file.path(fit_dir, file))
+}
 
 #Appendix B (Table B.1)
 par <- setNames(fit.2ht.5k$parameters$mean[,"estimates"],
                 row.names(fit.2ht.5k$parameters$mean))
 
-# for (file in load_files) {
-#   load(file = file)
-# }
-15*(1-par["do"])*par["g5"]*par["s_g1"]*par["s_g2"]*par["s_g3"]*par["s_g4"]
 
-
+# Expected Freq for “guessing–high-confidence–fast
+# 15*(1-par["do"])*par["g5"]*par["s_g1"]*par["s_g2"]*par["s_g3"]*par["s_g4"]
 
 sel2 <- select.mpt(list(fit.2ht.5k, fit.sdt.5k, fit.aj.5k.3clk, fit.aj.5k.3gk))
 
 sel <- transform(sel2,
-                 "p%smaller.05" = (p.smaller.05 / 47) * 100,
-                 "AIC%best" = (AIC.best / 47) * 100)[,
+                 "p%smaller.05" = (p.smaller.05 / n_sub) * 100,
+                 "AIC%best" = (AIC.best / n_sub) * 100)[,
                                                      c("model", "n.parameters",
                                                        "p.smaller.05", "p%smaller.05",
                                                        "AIC.best", "AIC%best")]
-write_xlsx(sel, "sel_output_5k.xlsx")
-
-# Funciones de formato
+# Format Table B.2
 format_p <- function(p_values) {
   sapply(p_values, function(p) {
     if (p < 0.001) {
@@ -603,9 +611,9 @@ format_x2_aic <- function(values) {
   format(round(values, 2), nsmall = 2) # Redondeo a 2 decimales
 }
 
-# Creación de la tabla con nuevos modelos
+# Built Table B.2
 tabla2 <- data.frame(   # Table B.2
-  Id = 1:47,
+  Id = 1:n_sub,
   `X2(df=51)_2HT` = format_x2_aic(fit.2ht.5k$goodness.of.fit$individual$G.Squared),
   p_2HT = format_p(fit.2ht.5k$goodness.of.fit$individual$p.value),
   AIC_2HT = format_x2_aic(fit.2ht.5k$information.criteria$individual$AIC),
@@ -624,219 +632,16 @@ tabla2 <- data.frame(   # Table B.2
 )
 
 # Guardar la tabla en un archivo Excel
-write_xlsx(tabla2, "tabla1_5k.xlsx")
+write_xlsx(tabla2, path = file.path(fig_dir , "tablaB2_5k.xlsx"))
 
 
 #-------------------------------------------------------------------------------
-# Goodness of fit
-#-------------------------------------------------------------------------------
-
-# Goodness of fit for 5j 2CL models
-Gof.5j.2CL <- data.frame(
-  "AJcj" = cbind.data.frame(
-    fit.aj.5cj.2CL$goodness.of.fit$individual,
-    aic = fit.aj.5cj.2CL$information.criteria$individual$AIC
-  ),
-  "AJgj" = cbind.data.frame(
-    fit.aj.5gj.2CL$goodness.of.fit$individual,
-    aic = fit.aj.5gj.2CL$information.criteria$individual$AIC
-  ),
-  "2HT" = cbind.data.frame(
-    fit.2ht.5j.3CL$goodness.of.fit$individual,
-    aic = fit.aj.5cj.2CL$information.criteria$individual$AIC
-  ),
-  "SDT" = cbind.data.frame(
-    fit.sdt.5j.2CL$goodness.of.fit$individual,
-    aic = fit.aj.5cj.2CL$information.criteria$individual$AIC
-  )
-)
-
-# Goodness of fit for 3j 2CL models
-Gof.3j.2CL <- data.frame(
-  "AJcj" = cbind.data.frame(
-    fit.aj.3clk$goodness.of.fit$individual,
-    aic = fit.aj.3clk$information.criteria$individual$AIC
-  ),
-  "AJgj" = cbind.data.frame(
-    fit.aj.3gk$goodness.of.fit$individual,
-    aic = fit.aj.3gk$information.criteria$individual$AIC
-  ),
-  "2HT" = cbind.data.frame(
-    fit.2ht$goodness.of.fit$individual,
-    aic = fit.2ht$information.criteria$individual$AIC
-  ),
-  "SDT" = cbind.data.frame(
-    fit.sdt$goodness.of.fit$individual,
-    aic = fit.sdt$information.criteria$individual$AIC
-  )
-)
-
-# Save goodness of fit dataframes to Excel
-write_xlsx(x = Gof.5j.2CL, path = "Gof.5j.2CL.xlsx")
-write_xlsx(x = Gof.3j.2CL, path = "Gof.3j.2CL.xlsx")
-
-
-#-------------------------------------------------------------------------------
-# 6.4. Cross Validation
-#-------------------------------------------------------------------------------
-
-datos <- read.delim("data_Juola.txt")
-datos$Confidence_level
-datos <- datos[(datos$Target_frequency != 1 & datos$Target_frequency != 5),]
-datos[(datos$Confidence_level==3),"Confidence_level"] <- 2 
-datos$Target_frequency <- datos$Target_frequency - 1
-
-
-
-# Initial time
-ini_time <- Sys.time()
-
-#-----
-# 3.a. Prepare for parallel
-#-----
-
-n.cores <- parallel::detectCores(logical = FALSE)-1
-cl <- parallel::makeCluster(n.cores, type = "SOCK") 
-doParallel::registerDoParallel(cl, cores = n.cores)
-
-
-pm <- foreach::foreach(j = 1:k, # performance metrics (pm)
-                       .packages = c("caret", "dplyr", "tidyr", "MPTinR"), 
-                       .combine = rbind, 
-                       .inorder = FALSE
-) %dopar% {
-  try({ 
-    
-    #-----
-    # 3.1. Establish randomization seed
-    #-----
-    
-    set.seed(1320 + j) # Unique and identifiable seed for each condition
-    
-    #-----
-    # 3.2. Specify condition
-    
-    datos_id <- datos[datos$Id == 1, ]
-    indices <- createDataPartition(y = datos_id$Category, p = 0.5, list = FALSE)
-    train_set <- datos_id[indices, ]
-    test_set  <- datos_id[-indices, ]
-    
-    for (i in 2:max(datos$Id)) {
-      
-      datos_id <- datos[datos$Id == i, ]
-      indices <- createDataPartition(y = datos_id$Category, p = 0.5, list = FALSE)
-      train_set2 <- datos_id[indices, ]
-      test_set2  <- datos_id[-indices, ]
-      train_set <- rbind.data.frame(train_set, train_set2)
-      test_set <- rbind.data.frame(test_set, test_set2)
-      
-    }
-    
-    train_set <- change_to_freq(train_set)
-    test_set <- change_to_freq(test_set)
-    
-    train.2ht<-  fit.model(model.filename = textConnection(m.2ht), data = train_set, 
-                           multicore = "individual", nCPU = 2, sfInit = TRUE,
-                           n.optim =  20,
-                           ci = 95, 
-                           use.gradient = F)
-    
-    train.sdt<-  fit.model(model.filename = textConnection(m.sdt), data = train_set, 
-                         multicore = "individual", nCPU = 2, sfInit = TRUE,
-                         n.optim =  20,
-                         ci = 95, 
-                         lower.bound= c(rep(-Inf,3), 0,0, 0.1, rep(0,4), 0.1),
-                         upper.bound= c(rep(Inf, 6), rep(1, 4), Inf),
-                         use.gradient = F)
-    
-    train.aj <-   fit.model(model.filename = textConnection(m.aj), data = train_set, 
-                          multicore = "individual", nCPU = 2, sfInit = TRUE,
-                          n.optim =  20,
-                          ci = 95, 
-                          output = "full",
-                          lower.bound= c(0.1, rep(-Inf,3), 0.1, rep(0,14), 0.1),
-                          upper.bound= c(rep(Inf,5), rep(1,14), Inf))
-    
-    test.2ht<-  fit.model(model.filename = textConnection(m.2ht), data = test_set, 
-                          multicore = "individual", nCPU = 2, sfInit = TRUE,
-                          n.optim =  20,
-                          ci = 95, 
-                          use.gradient = F)
-    test.aj <-   fit.model(model.filename = textConnection(m.aj), data = test_set, 
-                           multicore = "individual", nCPU = 2, sfInit = TRUE,
-                           n.optim =  20,
-                           ci = 95, 
-                           output = "full",
-                           lower.bound= c(0.1, rep(-Inf,3), 0.1, rep(0,14), 0.1),
-                           upper.bound= c(rep(Inf,5), rep(1,14), Inf))
-    
-    test.sdt<-  fit.model(model.filename = textConnection(m.sdt), data = test_set, 
-                          multicore = "individual", nCPU = 2, sfInit = TRUE,
-                          n.optim =  20,
-                          ci = 95, 
-                          lower.bound= c(rep(-Inf,3), 0,0, 0.1, rep(0,4), 0.1),
-                          upper.bound= c(rep(Inf, 6), rep(1, 4), Inf),
-                          use.gradient = F)
-    
-    
-    
-    res <- c(select.mpt(list(test.2ht, test.sdt, test.aj))[, "AIC.best"], 
-                  select.mpt(list(train.2ht, train.sdt, train.aj))[, "AIC.best"])
-    names(res) <- c("test.2ht", "test.sdt", "test.aj",
-                        "train.2ht", "train.sdt", "train.aj")
-    res # Final output tibbles
-  })
-}
-
-fin_time <- Sys.time(); 
-print(elapse_time <- fin_time - ini_time)
-
-parallel::stopCluster(cl)
-
-
-
-library(dplyr)
-library(tidyr)
-library(writexl)
-
-resumen_datos <- datos %>%
-  group_by(id, x) %>%
-  summarize(f_cat = n(),           
-            m_y = mean(y, na.rm = TRUE))  
-
-
-tabla_final <- resumen_datos %>%
-  pivot_wider(
-    names_from = x,               
-    values_from = c(f_cat, m_y),  
-    names_glue = "{.value}_x{x}"  
-  )
-
-
-table(datos$Id, datos$Confidence_level, datos$Confidence_level)
-writexl::write_xlsx(tabla_final, "tabla_final.xlsx")
-tabla_cnf <- (table(datos$id, datos$x_cnf))
-
-df_tabla_cnf <- as.data.frame.matrix(tabla_cnf)
-
-
-writexl::write_xlsx(df_tabla_cnf, "df_tabla_cnf.xlsx")
-writexl::write_xlsx(as.data.frame.matrix(par.3clk), "par.3clk.xlsx")
-
-
-
-#-------------------------------------------------------------------------------
-# 7. Data Plots
+# 8. Data Plots
 #-------------------------------------------------------------------------------
 
 #-----
-# 7.1. Observed Proportion
+# 8.1. Observed Proportion (Figure 6)
 #-----
-library(dplyr)
-library(tidyr)
-library(stringr)
-library(dplyr)
-library(ggplot2)
 
 long_counts <- as.data.frame(d.data.cl.rt) %>%
   mutate(subject = row_number()) %>%                           
@@ -889,7 +694,7 @@ summary_prop <- props_by_subject %>%
                          labels = c("65% Target", "50% Target", "35% Target"))
   )
 
-p <- ggplot(summary_prop,
+p <- ggplot(summary_prop, 
             aes(x = interaction(confidence, rt_bin),
                 y = mean_prop, fill = confidence)) +
   geom_bar(stat = "identity",
@@ -918,76 +723,16 @@ p <- ggplot(summary_prop,
     strip.text = element_text(face = "bold", size = 10)
   )
 
-# ggsave("mean_proportion_barplot.png", plot = p, width = 8, height = 5, dpi = 300)
-
-
-
-summary_hits_cr_highconf <- summary_prop %>%
-  filter(response %in% c("Hit", "Correct Rejection"),
-         confidence == "High") %>%
-  mutate(
-    ci_lower = mean_prop - 1.96 * se_prop,
-    ci_upper = mean_prop + 1.96 * se_prop
-  )
-
-# CI
-p2 <- ggplot(summary_hits_cr_highconf,
-             aes(x = target_freq,
-                 y = mean_prop,
-                 group = rt_bin,
-                 shape = rt_bin,
-                 linetype = rt_bin)) +
-  geom_point(size = 3) +
-  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
-                width = 0.1, linewidth = 0.3) +
-  geom_line() +
-  facet_wrap(~ response, nrow = 1) +
-  scale_y_continuous(name = "Mean Proportion", limits = c(0.05, 0.45)) +
-  scale_x_discrete(name = "Target Frequency Condition") +
-  scale_shape_manual(values = c("Fast" = 16, "Slow" = 1)) +
-  scale_linetype_manual(values = c("Fast" = "solid", "Slow" = "dashed")) +
-  theme_bw(base_size = 8, base_family = "serif") +
-  theme(
-    panel.grid.major = element_line(color = "grey80", size = 0.3),
-    panel.grid.minor = element_blank(),
-    legend.position = c(0.98, 0.65),
-    legend.justification = c("right", "bottom"),
-    legend.background = element_rect(fill = "white", color = "black"),
-    strip.background = element_blank(),
-    strip.text = element_text(face = "bold", size = 10),
-    axis.title = element_text(size = 10),
-    axis.text = element_text(size = 10),
-    legend.text = element_text(size = 10),
-    legend.title = element_text(size = 10),
-    plot.title = element_text(size = 10),
-    strip.text.x = element_text(size = 10)
-  ) +
-  labs(
-    shape = "Response Time",
-    linetype = "Response Time"
-  )
-
-p2
-
-
-# ggsave("selected_mean_proportion_barplot.png", plot = p2, width = 8, height = 3, dpi = 300)
-
-
+print(p) #Fig6
+ggsave( file.path(fig_dir, "mean_proportion_barplot.png"),
+        plot = p, width = 8, height = 5, dpi = 300)
 
 #-----
-# 7.1. Predicted vs Observed Proportion
+# 8.2. Predicted vs Observed Proportion (Fig 6A-6C)
 #-----
 
-# path: R/plot_obs_pred_high_function.R
-suppressPackageStartupMessages({
-  library(dplyr)
-  library(tidyr)
-  library(ggplot2)
-  library(stringr)
-})
-
-plot_obs_pred_high <- function(fit, y_limits = c(0.05, 0.45)) {
-  # Why: ensure required slots exist and are matrices
+plot_obs_pred_high <- function(fit, y_limits = c(0.05, 0.5)) {
+   # Ensure requirements
   if (is.null(fit$data$observed$individual) || is.null(fit$data$predicted$individual)) {
     stop("fit must contain $data$observed$individual and $data$predicted$individual.")
   }
@@ -995,12 +740,11 @@ plot_obs_pred_high <- function(fit, y_limits = c(0.05, 0.45)) {
   m_pred <- fit$data$predicted$individual
   if (!is.matrix(m_obs) || !is.matrix(m_pred)) stop("observed/predicted must be matrices.")
   
-  # Why: unify predicted colnames to observed pattern when shape matches
   if (!identical(colnames(m_pred), colnames(m_obs)) && ncol(m_pred) == ncol(m_obs)) {
     colnames(m_pred) <- colnames(m_obs)
   }
   
-  # Keep only Hit/CR high1/high2 for k1..k3
+  # Keep only Correct High confidence responses 
   keep_pat <- "^(hit|cr)-k[123]-high[12]$"
   obs_high  <- m_obs [, grepl(keep_pat, colnames(m_obs )), drop = FALSE]
   pred_high <- m_pred[, grepl(keep_pat, colnames(m_pred)), drop = FALSE]
@@ -1008,7 +752,7 @@ plot_obs_pred_high <- function(fit, y_limits = c(0.05, 0.45)) {
     stop("No columns matched '^(hit|cr)-k[123]-high[12]$'.")
   }
   
-  # Denominators per column
+  # Extract condition names
   make_denoms <- function(nms) {
     k_num  <- as.integer(sub(".*-k([123])-.*", "\\1", nms))
     is_hit <- grepl("^hit", nms)
@@ -1019,11 +763,11 @@ plot_obs_pred_high <- function(fit, y_limits = c(0.05, 0.45)) {
   den_obs  <- make_denoms(colnames(obs_high))
   den_pred <- make_denoms(colnames(pred_high))
   
-  # Proportions per subject/column
+  # Proportions 
   obs_prop  <- sweep(obs_high,  2, den_obs,  "/")
   pred_prop <- sweep(pred_high, 2, den_pred, "/")
   
-  # Long format with labels
+  # Long format 
   to_long <- function(prop_mat, source_label) {
     as.data.frame(prop_mat) |>
       mutate(Subject = dplyr::row_number()) |>
@@ -1055,27 +799,48 @@ plot_obs_pred_high <- function(fit, y_limits = c(0.05, 0.45)) {
       .groups = "drop"
     ) |>
     mutate(
-      # Why: enforce panel and legend order
       Response = factor(Response, levels = c("Hit","Correct Rejection")),
       Speed    = factor(Speed, levels = c("Fast","Slow")),
       Source   = factor(Source, levels = c("Observed","Predicted"))
     )
+
   
-  # Plot
-  p_both <- ggplot(
-    summary_both,
-    aes(x = K, y = mean_prop,
-        group = interaction(Source, Speed),
-        color = Source, linetype = Source, shape = Speed)
-  ) +
-    geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper),
-                  width = 0.10, linewidth = 0.3) +
-    geom_line() +
-    geom_point(size = 3) +
+  p_both <- ggplot(summary_both, aes(x = K, y = mean_prop)) +
+    
+    # --- OBSERVED: dots + error ---
+    geom_errorbar(
+      data = subset(summary_both, Source == "Observed"),
+      aes(ymin = ci_lower, ymax = ci_upper, group = Speed),
+      width = 0.10,
+      linewidth = 0.4,
+      color = "black"
+    ) +
+    geom_point(
+      data = subset(summary_both, Source == "Observed"),
+      aes(shape = Speed),
+      size = 3,
+      stroke = 1,
+      color = "black"
+    ) +
+    
+    # --- PREDICTED: lines ---
+    geom_line(
+      data = subset(summary_both, Source == "Predicted"),
+      aes(linetype = Speed, group = Speed),
+      linewidth = 0.6,
+      color = "black"
+    ) +
+    
     facet_wrap(~ Response, nrow = 1) +
     scale_y_continuous(name = "Mean Proportion", limits = y_limits) +
     scale_x_discrete(name = "Target Frequency Condition") +
+    
+    # FAST = filled, SLOW = open
     scale_shape_manual(values = c("Fast" = 16, "Slow" = 1)) +
+    
+    # FAST = solid line, SLOW = dashed line
+    scale_linetype_manual(values = c("Fast" = "solid", "Slow" = "dashed")) +
+    
     theme_bw(base_size = 8, base_family = "serif") +
     theme(
       panel.grid.major = element_line(color = "grey80", linewidth = 0.3),
@@ -1087,214 +852,23 @@ plot_obs_pred_high <- function(fit, y_limits = c(0.05, 0.45)) {
       axis.title = element_text(size = 10),
       axis.text  = element_text(size = 10)
     ) +
+    
     labs(
-      color = "Source",
-      linetype = "Source",
-      shape = "Response Time"
+      shape = "Observed (RT)",
+      linetype = "Predicted (RT)"
     )
   
   list(summary = summary_both, plot = p_both)
 }
 
-# --- Example usage ---
 res_aj <- plot_obs_pred_high(fit.aj.3clk)
 print(res_aj$plot)
-ggsave("observed_vs_predicted_AJ.png", res_aj$plot, width = 8, height = 3, dpi = 300)
+ggsave(file.path( fig_dir, "observed_vs_predicted_AJ.png"), res_aj$plot, width = 8, height = 3, dpi = 300)
 
 res_2ht <- plot_obs_pred_high(fit.2ht)
 print(res_2ht$plot)
-ggsave("observed_vs_predicted_2HT.png", res_2ht$plot, width = 8, height = 3, dpi = 300)
+ggsave(file.path( fig_dir, "observed_vs_predicted_2HT.png"), res_2ht$plot, width = 8, height = 3, dpi = 300)
 
 res_sdt <- plot_obs_pred_high(fit.sdt)
 print(res_sdt$plot)
-ggsave("observed_vs_predicted_SDT.png", res_sdt$plot, width = 8, height = 3, dpi = 300)
-
-
-#-----
-# 7.3. Full
-#-----
-
-wd <- getwd()
-df <- read.table( paste0(wd, "/data/data_juola.txt"), header = TRUE, sep = "\t")
-
-
-df_clean <- df %>%
-  filter(Target_frequency %in% c(2, 3, 4)) %>%
-  mutate(
-    trial_type = case_when(
-      Type_of_trial == 1 ~ "Hit",
-      Type_of_trial == 2 ~ "Miss",
-      Type_of_trial == 3 ~ "FA",
-      Type_of_trial == 4 ~ "CR"
-    ),
-    confidence_bin = case_when(
-      Confidence_level == 1 ~ "High",
-      Confidence_level %in% c(2, 3) ~ "Low"
-    ),
-    target_freq_label = case_when(
-      Target_frequency == 2 ~ "65%",
-      Target_frequency == 3 ~ "50%",
-      Target_frequency == 4 ~ "35%"
-    )
-  )
-
-mean_freq_per_subject <- df_clean %>%
-  group_by(Id, trial_type, confidence_bin, target_freq_label) %>%
-  summarise(n = n(), .groups = "drop") %>%
-  group_by(trial_type, confidence_bin, target_freq_label) %>%
-  summarise(mean_n = mean(n), .groups = "drop")
-
-# Paso 3: calcular RTs como antes
-summary_rt <- df_clean %>%
-  group_by(trial_type, confidence_bin, target_freq_label) %>%
-  summarise(
-    median_rt = median(RT, na.rm = TRUE),
-    ric_rt = IQR(RT, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-summary_final <- left_join(mean_freq_per_subject, summary_rt,
-                           by = c("trial_type", "confidence_bin", "target_freq_label"))
-
-summary_table_ordered <- summary_final %>%
-  arrange(target_freq_label, trial_type, confidence_bin) %>%
-  mutate(
-    mean_n = round(mean_n, 1),
-    median_rt = round(median_rt),
-    ric_rt = round(ric_rt),
-    target_freq_label = factor(target_freq_label, levels = c("35%", "50%", "75%"))
-  ) %>%
-  select(target_freq_label, trial_type, confidence_bin, mean_n, median_rt, ric_rt)
-
-library(dplyr)
-library(knitr)
-library(kableExtra)
-
-# summary_table_ordered %>%
-#   select(-target_freq_label) %>%
-#   kable(
-#     format = "html",
-#     col.names = c("Response Category", "Confidence", "Mean Freq.", "Median RT (ms)", "IQR (ms)"),
-#     align = "lcccc"
-#   ) %>%
-#   kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE, position = "center") %>%
-#   row_spec(0, bold = TRUE) %>%
-#   group_rows("Target Freq.: 35%", 1, 8) %>%
-#   group_rows("Target Freq.: 50%", 9, 16) %>%
-#   group_rows("Target Freq.: 75%", 17, 24)
-# 
-# library(webshot2)
-# library(magick)
-# install.packages("magick")
-# library(kableExtra)
-# 
-# save_kable(summary_table_ordered, file = "descript_freq_medianRT.png")
-
-descript_freq_medianRT <- summary_table_ordered %>%
-  select(-target_freq_label) %>%
-  kable(
-    format = "html",
-    col.names = c("Response Category", "Confidence", "Mean Freq.", "Median RT (ms)", "IQR (ms)"),
-    align = "lcccc"
-  ) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
-                full_width = FALSE, position = "center") %>%
-  row_spec(0, bold = TRUE) %>%
-  group_rows("Target Freq.: 35%", 1, 8) %>%
-  group_rows("Target Freq.: 50%", 9, 16) %>%
-  group_rows("Target Freq.: 75%", 17, 24)
-
-# Guardar como imagen
-save_kable(descript_freq_medianRT, file = "descript_freq_medianRT.png")
-
------
-  # 7.2. Table: Median RT and IQR by Trial Type, Confidence, and Target Frequency
-  #-----
-wd <- getwd()
-df <- read.table(paste0(wd, "/data/data_juola.txt"), header = TRUE, sep = "\t")
-
-# 2. Cargar paquetes
-library(dplyr)
-library(ggplot2)
-
-# # 3. Preparar datos para el gráfico
-# plot_data <- df %>%
-#   filter(Target_frequency %in% c(2, 3, 4)) %>%
-#   mutate(
-#     trial_type = case_when(
-#       Type_of_trial == 1 ~ "Hit",
-#       Type_of_trial == 2 ~ "Miss",
-#       Type_of_trial == 3 ~ "FA",
-#       Type_of_trial == 4 ~ "CR"
-#     ),
-#     confidence_bin = case_when(
-#       Confidence_level == 1 ~ "High",
-#       Confidence_level %in% c(2, 3) ~ "Low"
-#     ),
-#     target_freq_label = case_when(
-#       Target_frequency == 2 ~ "65%",
-#       Target_frequency == 3 ~ "50%",
-#       Target_frequency == 4 ~ "35%"
-#     ),
-#     condition = paste0(tolower(trial_type), "_", tolower(confidence_bin)),
-#     group = ifelse(trial_type %in% c("CR", "FA"), "Noise", "Signal")
-#   ) %>%
-#   group_by(trial_type, confidence_bin, target_freq_label, condition, group) %>%
-#   summarise(
-#     median_rt = median(RT, na.rm = TRUE),
-#     ric_rt = IQR(RT, na.rm = TRUE),
-#     .groups = "drop"
-#   )
-
-# 4. Etiquetas legibles para condiciones
-condition_order <- c(
-  "cr_high", "cr_low", "fa_low", "fa_high",
-  "miss_high", "miss_low", "hit_low", "hit_high"
-)
-condition_labels <- c(
-  "cr_high" = "CR High",
-  "cr_low" = "CR Low",
-  "fa_low" = "FA Low",
-  "fa_high" = "FA High",
-  "miss_high" = "Miss High",
-  "miss_low" = "Miss Low",
-  "hit_low" = "Hit Low",
-  "hit_high" = "Hit High"
-)
-
-plot_data <- plot_data %>%
-  mutate(
-    condition = factor(condition, levels = condition_order),
-    condition_pretty = factor(condition, labels = condition_labels),
-    target_freq_label = factor(target_freq_label, levels = c("35%", "50%", "75%"))
-  )
-
-# 5. Etiquetas para facet rows
-facet_labels <- c(
-  "35%" = "Target Frequency: 35%",
-  "50%" = "Target Frequency: 50%",
-  "75%" = "Target Frequency: 75%"
-)
-
-# 6. Generar el gráfico
-ggplot(plot_data, aes(x = condition_pretty, y = median_rt, color = group, group = group)) +
-  geom_point(size = 3) +
-  geom_line(linewidth = 0.8) +
-  geom_errorbar(aes(ymin = median_rt - ric_rt/2, ymax = median_rt + ric_rt/2), width = 0.2) +
-  facet_grid(rows = vars(target_freq_label), labeller = as_labeller(facet_labels)) +
-  scale_color_manual(values = c("Noise" = "black", "Signal" = "gray50")) +
-  labs(
-    x = "Category x CL",
-    y = "Median RT (ms)",
-    color = "Stimuly"
-  ) +
-  theme_bw(base_size = 12, base_family = "serif") +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    legend.position = "bottom",
-    strip.background = element_blank(),
-    strip.text = element_text(face = "bold")
-  )
-
-table(plot_data$condition_pretty, plot_data$group)
-df %>% count(Type_of_trial, Confidence_level, Stimulus, Response)
+ggsave(file.path( fig_dir, "observed_vs_predicted_SDT.png"), res_sdt$plot, width = 8,height = 3, dpi = 300)
