@@ -229,7 +229,7 @@ format_p <- function(p_values) {
   })
 }
 
-table_nested1 <- data.frame( # Table for Fig 7
+table_nested1 <- data.frame( # Table D.1
   Id = 1:47,
   
   `G2 (df=3)_AJcj` = nested.cj$G2,
@@ -281,7 +281,7 @@ nested.gj.L <- test.nested(model.gen = fit.aj.3gk , model.rest = fit.aj.3g.rL)
 sum(nested.cj.L$p.val<.05)/n_sub
 sum(nested.gj.L$p.val<.05)/n_sub
 
-table_nested2 <- data.frame( # Table for Figure 8
+table_nested2 <- data.frame( # Table D.2
   Id = 1:47,
   
   `G2 (df=3)_AJcj` = nested.cj.L$G2,
@@ -333,7 +333,7 @@ nested.gj.H <- test.nested(model.gen = fit.aj.3gk, model.rest = fit.aj.3gk.rH )
 sum(nested.cj.H$p.val<0.05)/n_sub
 sum(nested.gj.H$p.val<0.05)/n_sub
     
-    table_nested3 <- data.frame( # Table for Figure 9
+    table_nested3 <- data.frame( # Table D.3
       Id = 1:n_sub,
       
       `G2 (df=4)_AJcj` = nested.cj.H$G2,
@@ -354,11 +354,9 @@ sum(nested.gj.H$p.val<0.05)/n_sub
     gj_vals <- as.numeric(unlist(gj_obj$p.val))
     cj_vals <- as.numeric(unlist(cj_obj$p.val))
     
-    # Replace zeros to avoid log(0)
     gj_vals[gj_vals == 0] <- 0.001
     cj_vals[cj_vals == 0] <- 0.001
     
-    # Create individual data frames
     gj_df <- data.frame(
       log_pval = log(gj_vals),
       test = name_g
@@ -368,14 +366,10 @@ sum(nested.gj.H$p.val<0.05)/n_sub
       test = name_c
     )
     
-    # Combine
     plot_df <- dplyr::bind_rows(gj_df, cj_df)
-    
-    # Threshold in log scale
     threshold_log <- log(0.05)
     
-    # Create faceted histogram with vertical line
-    ggplot2::ggplot(plot_df, ggplot2::aes(x = log_pval, fill = test)) +
+     ggplot2::ggplot(plot_df, ggplot2::aes(x = log_pval, fill = test)) +
       ggplot2::geom_histogram(alpha = 0.9, bins = 30, color = "black") +
       ggplot2::geom_vline(xintercept = threshold_log, linetype = "dashed", color = "black", linewidth = 0.6) +
       ggplot2::annotate("text",

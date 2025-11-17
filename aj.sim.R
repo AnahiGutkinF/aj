@@ -291,11 +291,12 @@ nml_aj <- run_nml(fun= M2HT, parl=20, ks=rep(8,6), Ns=c(rep(50,6)),
                   fits = 2, batchsize=1000, burn=10000, precision=.141,
                   cores = 20)
 
-
+# Save NML
 save(nml_sdt,file="nmlsdt.RData")
 save(nml_2ht,file="nml2ht.RData")
 save(nml_aj,file="nmlaj.RData")
 
+# Load NML
 load("nmlsdt.RData")
 load("nml2ht.RData")
 load("nmlaj.RData")
@@ -339,7 +340,7 @@ pm_1 <- pm_1 %>%
 #-------------------------------------------------------------------------------
 # 5. Model Recovery
 #-------------------------------------------------------------------------------
-# install.packages("dplyr")
+
 library(dplyr)
 library(writexl)
 

@@ -1,34 +1,35 @@
-
 # A-J Multinomial Process Tree Model
 
 ## Overview
 
-This repository contains scripts and data for evaluating recognition models using the Extended-MPT framework, based on the original experimental data from Juola et al. (2019). The data can be accessed at: https://osf.io/y78mk/.
+This repository contains scripts and data for evaluating recognition models using the Extended-MPT framework, based on the original experimental data from Juola et al. (2019). Data: https://osf.io/y78mk/.
 
 ## Repository Contents
 
-### Scripts
-- Main Scripts: There are three primary scripts necessary to replicate our main results. These scripts and the main data file must be located in the same directory to function properly.
+Scripts (place these and the main data file in the same directory)
+- aj.mpt.R — Main script for model fitting, data analysis, and figure generation. Automatically calls required secondary scripts.
+- aj.sim.R — Executes simulations of multinomial models. Automatically calls required secondary scripts.
+- aj.fun.R — Auxiliary functions used by aj.mpt.R and aj.sim.R.
 
-`aj.mpt.R`: Main script for model fitting, data analysis, and figure generation. This script automatically calls the required secondary scripts.
-`aj.sim.R`: Script dedicated to running simulations of multinomial models.
+Folder Structure (first level)
+- Simulation Performance Measures
+  * pm.R — simulations and performance measures (results of these simulations).
+  * nml2ht.RData, nmlsdt.RData, nmlaj.RData — files underlying Appendix C; produced by running aj.sim.R.
+- model_files/ — TXT model specifications.
+- figures/ — figures and tables created by aj.mpt.R.
+- main_fits/ — fit files created by aj.mpt.R.
+- nml/ — implementation and computation of normalized maximum likelihood (NML) penalties (C++). Relevant sources: model2ht.cpp, modelaj.cpp, modelsdt.cpp. For NML details, see Kellen & Klauer (2020). These files are required to generate nml2ht.RData, nmlsdt.RData, and nmlaj.RData.
+- data/ — recategorized data used in the analyses: d.data.cl.rt.RData. Supplementary recategorized data for five-condition manipulations: data.5j.2CL.RData and data.5j.3CL.RData. For the original, non-transformed data see https://osf.io/y78mk/ (file d.juola).
 
-Note: The main scripts and data files must be located in the same directory for proper execution.
+## Usage
 
-### Data Files
-- Main Data: The principal recategorized data file used in the analyses is `d.data.cl.rt.RData`.
-- Supplementary Data: Recategorized data files are for analyses involving five conditions of manipulation of relative target frequencies, `data.5j.2CL.RData` and `data.5j.3CL.RData`. 
+1) Import the repository: use the entire folder structure.
+2) Execute results: run aj.mpt.R to produce main fit files (saved in main_fits) and visualization files (saved in figures).
+3) Simulations results: pm.R contains the performance results for the simulations in Appendix C. To replicate these simulations, run aj.sim.R. Both pm.R and the NML penalty files (nml2ht.RData, nmlsdt.RData, nmlaj.RData) are created by executing aj.sim.R.
+4) Functions, models, and penalties: ensure aj.fun.R, the model_files folder, and the nml folder are in the same directory as aj.sim.R and aj.mpt.R; they reference each other.
 
-### Models and Functions
-- Model Specifications: Detailed in txt files in the `model_files` folder. Some models are also implemented in C++ to optimize the computation of the normalized maximum likelihood (NML) penalty. The relevant C++ files are: `model2ht.cpp`, `modelaj.cpp` and `modelsdt.cpp`. For further explanation of NML penalties, see Kellen & Klauer,2020.
-- Custom Functions: Developed specifically for this study and located in `aj.fun.R`.
-- Analysis and Visualization: All operations for fitting models, analyzing data, and generating figures are performed by running `aj.mpt.R`. This script will automatically call the necessary secondary scripts.
-
-### Output
-- Fit Objects: Main fits objects are stored in the `main_fit` folder. Running the main script, `aj.mpt.R` or `aj.sim.R`, generates all required objects, including those in the `tables` and `main_fit` folders.
 
 ## Reference
 
-Juola, J. F., Caballero-Sanz, A., Muñoz-García, A. R., Botella, J., & Suero, M. (2019). Familiarity, recollection, and receiver-operating characteristic (ROC) curves in recognition memory. Memory & Cognition, 47(4), 855-876.
+Juola, J. F., Caballero-Sanz, A., Muñoz-García, A. R., Botella, J., & Suero, M. (2019). Familiarity, recollection, and receiver-operating characteristic (ROC) curves in recognition memory. Memory & Cognition, 47(4), 855–876.
 Kellen, D., & Klauer, K. C. (2020). Selecting amongst multinomial models: An apologia for normalized maximum likelihood. Journal of Mathematical Psychology, 97, 1–47. https://doi.org/10.1016/j.jmp.2020.102367
-
